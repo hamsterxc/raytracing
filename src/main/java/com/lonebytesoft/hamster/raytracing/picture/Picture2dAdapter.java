@@ -1,0 +1,60 @@
+package com.lonebytesoft.hamster.raytracing.picture;
+
+import com.lonebytesoft.hamster.raytracing.color.Color;
+import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
+
+import java.util.Iterator;
+
+class Picture2dAdapter<T extends Coordinates<T>> implements PictureMutable<T> {
+
+    private final T size;
+    private final Picture2dImpl picture;
+
+    public Picture2dAdapter(final T size) {
+        if(size.getDimensions() != 2) {
+            throw new IllegalArgumentException("Dimensions other than 2 not supported");
+        }
+
+        this.size = size;
+        this.picture = new Picture2dImpl(getCoordinate(size, 0), getCoordinate(size, 1));
+    }
+
+    @Override
+    public Color getPixelColor(T pixelCoordinates) {
+        return picture.getPixelColor(getCoordinate(pixelCoordinates, 0), getCoordinate(pixelCoordinates, 1));
+    }
+
+    @Override
+    public void setPixelColor(T pixelCoordinates, Color color) {
+        picture.setPixelColor(getCoordinate(pixelCoordinates, 0), getCoordinate(pixelCoordinates, 1), color);
+    }
+
+    private int getCoordinate(final T coordinates, final int dimension) {
+        return (int) Math.floor(coordinates.getCoordinate(dimension));
+    }
+
+    @Override
+    public Iterator<T> getAllPixelCoordinates() {
+        return new CoordinatesIteratorAdapter(picture.getAllPixelCoordinates());
+    }
+
+    private class CoordinatesIteratorAdapter implements Iterator<T> {
+        private final Iterator<int[]> iterator;
+
+        public CoordinatesIteratorAdapter(final Iterator<int[]> iterator) {
+            this.iterator = iterator;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return iterator.hasNext();
+        }
+
+        @Override
+        public T next() {
+            final int[] next = iterator.next();
+            return next == null ? null : size.obtain(next[0], next[1]);
+        }
+    }
+
+}

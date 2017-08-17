@@ -115,6 +115,25 @@ public class Ball<T extends Coordinates<T>>
         return reference.obtain(phi);
     }
 
+    /**
+     * @see #mapToSurface(Ray, Coordinates)
+     */
+    @Override
+    public <F extends Coordinates<F>> T mapFromSurface(F coordinates) {
+        final int dimensions = center.getDimensions();
+        final double[] coords = new double[dimensions];
+
+        double sinuses = radius;
+        for(int i = 0; i < dimensions - 1; i++) {
+            final double phi = coordinates.getCoordinate(i) * Math.PI;
+            coords[i] = sinuses * Math.cos(phi);
+            sinuses *= Math.sin(phi);
+        }
+        coords[dimensions - 1] = sinuses;
+
+        return center.obtain(coords);
+    }
+
     private T calculateIntersection(final Ray<T> ray) {
         final Double multiplier = calculateRayDistanceMultiplier(ray);
         if(multiplier == null) {
@@ -174,6 +193,14 @@ public class Ball<T extends Coordinates<T>>
         } else {
             return null;
         }
+    }
+
+    @Override
+    public String toString() {
+        return "Ball{" +
+                "center=" + center +
+                ", radius=" + radius +
+                '}';
     }
 
 }

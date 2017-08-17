@@ -173,6 +173,56 @@ public class GeneralOrthotope<T extends Coordinates<T>>
         }
     }
 
+    /**
+     * @see #mapToSurface(Ray, Coordinates)
+     */
+    @Override
+    public <F extends Coordinates<F>> T mapFromSurface(F coordinates) {
+        final int spaceDimensions = base.getDimensions();
+        final int orthotopeDimensions = vectors.size();
+        final int facetDimensions = coordinates.getDimensions();
+
+        final int fixCount = vectors.size() - facetDimensions;
+        final long fixVariants = (long) Math.pow(2, fixCount);
+        final long facetIndex = (long) Math.floor(coordinates.getCoordinate(0));
+        final long fixVectorsIndex = facetIndex / fixVariants;
+        final long fixVectorsValueIndex = facetIndex % fixVariants;
+
+        final Variant fixIndices = new Combination(fixCount, orthotopeDimensions);
+        for(long variant = 0; variant < fixVectorsIndex; variant++) {
+            fixIndices.advance();
+        }
+        final List<Integer> fixVectors = fixIndices.current();
+
+        final Variant fixValues = new Options(fixCount, 2);
+        for(long variant = 0; variant < fixVectorsValueIndex; variant++) {
+            fixValues.advance();
+        }
+        final List<Integer> fixVectorsValue = fixValues.current();
+
+        final F facetCoordinates = CoordinatesCalculator.transform(coordinates, index -> {
+            if(index == 0) {
+                return coordinates.getCoordinate(index) - facetIndex;
+            } else {
+                return coordinates.getCoordinate(index);
+            }
+        });
+        return CoordinatesCalculator.transform(base, index -> {
+            double coordinate = base.getCoordinate(index);
+            int facetCoordinateIndex = 0;
+            for(int i = 0; i < orthotopeDimensions; i++) {
+                final int vectorIndex = fixVectors.indexOf(i);
+                if(vectorIndex < 0) {
+                    coordinate += vectors.get(i).getCoordinate(index) * facetCoordinates.getCoordinate(facetCoordinateIndex);
+                    facetCoordinateIndex++;
+                } else {
+                    coordinate += vectors.get(i).getCoordinate(index) * fixVectorsValue.get(vectorIndex);
+                }
+            }
+            return coordinate;
+        });
+    }
+
     @Override
     public Ray<T> calculatePassThrough(Ray<T> ray) {
         final T intersectionPoint = calculateIntersectionPoint(ray);
@@ -340,6 +390,15 @@ public class GeneralOrthotope<T extends Coordinates<T>>
         } else {
             return GeometryCalculator.follow(ray.getStart(), ray.getDirection(), intersection.getDistanceMultiplier());
         }
+    }
+
+    @Override
+    public String toString() {
+        return "GeneralOrthotope{" +
+                "base=" + base +
+                ", vectors=" + vectors +
+                ", isInfinite=" + isInfinite +
+                '}';
     }
 
     private class OrthotopeIntersectionHolder {

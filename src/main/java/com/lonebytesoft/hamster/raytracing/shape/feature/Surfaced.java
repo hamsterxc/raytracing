@@ -7,4 +7,6 @@ public interface Surfaced<T extends Coordinates<T>> {
 
     <F extends Coordinates<F>> F mapToSurface(Ray<T> ray, F reference);
 
+    <F extends Coordinates<F>> T mapFromSurface(F coordinates);
+
 }

@@ -4,6 +4,10 @@ import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
 import com.lonebytesoft.hamster.raytracing.coordinates.CoordinatesCalculator;
 import com.lonebytesoft.hamster.raytracing.ray.Ray;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public final class GeometryCalculator {
 
     public static <T extends Coordinates<T>> T push(final T point, final T direction, final double minDelta) {
@@ -40,6 +44,11 @@ public final class GeometryCalculator {
         return Math.sqrt(product(vector, vector));
     }
 
+    public static <T extends Coordinates<T>> T normalize(final T vector) {
+        final double length = length(vector);
+        return CoordinatesCalculator.transform(vector, index -> vector.getCoordinate(index) / length);
+    }
+
     public static <T extends Coordinates<T>> T rotate(
             final T vector, final int axisFirst, final int axisSecond, final double angle) {
         return CoordinatesCalculator.transform(vector, index -> {
@@ -73,6 +82,21 @@ public final class GeometryCalculator {
 
             return new Ray<>(reflectionStart, reflectionVector);
         }
+    }
+
+    public static <T extends Coordinates<T>> List<T> generateBasis(final T reference) {
+        final int dimensions = reference.getDimensions();
+        final double[] coords = new double[dimensions];
+        Arrays.fill(coords, 0.0);
+
+        final List<T> vectors = new ArrayList<>();
+        CoordinatesCalculator.iterate(reference, index -> {
+            coords[index] = 1.0;
+            vectors.add(reference.obtain(coords));
+            coords[index] = 0.0;
+        });
+
+        return vectors;
     }
 
 }

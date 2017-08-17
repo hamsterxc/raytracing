@@ -2,12 +2,12 @@ package com.lonebytesoft.hamster.raytracing.scene.screen;
 
 import com.lonebytesoft.hamster.raytracing.color.Color;
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
+import com.lonebytesoft.hamster.raytracing.coordinates.CoordinatesCalculator;
 import com.lonebytesoft.hamster.raytracing.picture.Picture;
 import com.lonebytesoft.hamster.raytracing.picture.PictureMutable;
 import com.lonebytesoft.hamster.raytracing.picture.PictureMutableFactory;
 import com.lonebytesoft.hamster.raytracing.scene.screen.pixelcolor.PixelColoringStrategy;
 import com.lonebytesoft.hamster.raytracing.shape.generic.orthotope.Orthotope;
-import com.lonebytesoft.hamster.raytracing.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +33,8 @@ public abstract class AbstractScreen<S extends Coordinates<S>, F extends Coordin
         final PictureMutable<F> picture = PictureMutableFactory.obtainPictureMutable(resolution);
         final ExecutorService executorService = Executors.newWorkStealingPool();
 
-        for(final F pixelCoordinates : Utils.obtainIterable(picture.getAllPixelCoordinates())) {
+        for(final F pixelCoordinates : CoordinatesCalculator.getWholePoints(
+                CoordinatesCalculator.transform(resolution, index -> 0.0), resolution)) {
             executorService.submit(() -> {
                 logger.debug("Getting pixel {}", pixelCoordinates);
                 final Orthotope<F> pixelBoundaries = getPixelBoundaries(pixelCoordinates);

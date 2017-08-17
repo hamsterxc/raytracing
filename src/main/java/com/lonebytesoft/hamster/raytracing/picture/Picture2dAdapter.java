@@ -7,26 +7,27 @@ import java.util.Iterator;
 
 class Picture2dAdapter<T extends Coordinates<T>> implements PictureMutable<T> {
 
-    private final T size;
+    private final T reference;
     private final Picture2dImpl picture;
 
-    public Picture2dAdapter(final T size) {
-        if(size.getDimensions() != 2) {
-            throw new IllegalArgumentException("Dimensions other than 2 not supported");
-        }
-
-        this.size = size;
-        this.picture = new Picture2dImpl(getCoordinate(size, 0), getCoordinate(size, 1));
+    public Picture2dAdapter(final T reference) {
+        this.reference = reference;
+        this.picture = new Picture2dImpl();
     }
 
     @Override
     public Color getPixelColor(T pixelCoordinates) {
-        return picture.getPixelColor(getCoordinate(pixelCoordinates, 0), getCoordinate(pixelCoordinates, 1));
+        return picture.getPixelColor(
+                getCoordinate(pixelCoordinates, 0),
+                getCoordinate(pixelCoordinates, 1));
     }
 
     @Override
     public void setPixelColor(T pixelCoordinates, Color color) {
-        picture.setPixelColor(getCoordinate(pixelCoordinates, 0), getCoordinate(pixelCoordinates, 1), color);
+        picture.setPixelColor(
+                getCoordinate(pixelCoordinates, 0),
+                getCoordinate(pixelCoordinates, 1),
+                color);
     }
 
     private int getCoordinate(final T coordinates, final int dimension) {
@@ -35,13 +36,14 @@ class Picture2dAdapter<T extends Coordinates<T>> implements PictureMutable<T> {
 
     @Override
     public Iterator<T> getAllPixelCoordinates() {
-        return new CoordinatesIteratorAdapter(picture.getAllPixelCoordinates());
+        return new CoordinatesIterator(picture.getAllPixelCoordinates());
     }
 
-    private class CoordinatesIteratorAdapter implements Iterator<T> {
+    private class CoordinatesIterator implements Iterator<T> {
+
         private final Iterator<int[]> iterator;
 
-        public CoordinatesIteratorAdapter(final Iterator<int[]> iterator) {
+        public CoordinatesIterator(final Iterator<int[]> iterator) {
             this.iterator = iterator;
         }
 
@@ -53,8 +55,9 @@ class Picture2dAdapter<T extends Coordinates<T>> implements PictureMutable<T> {
         @Override
         public T next() {
             final int[] next = iterator.next();
-            return next == null ? null : size.obtain(next[0], next[1]);
+            return reference.obtain(next[0], next[1]);
         }
+
     }
 
 }

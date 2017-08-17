@@ -3,6 +3,7 @@ package com.lonebytesoft.hamster.raytracing.format;
 import com.lonebytesoft.hamster.raytracing.color.Color;
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates2d;
 import com.lonebytesoft.hamster.raytracing.picture.Picture;
+import com.lonebytesoft.hamster.raytracing.shape.generic.orthotope.Orthotope;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -18,9 +19,9 @@ public class BmpWriter implements PictureWriter<Coordinates2d> {
     // https://en.wikipedia.org/wiki/BMP_file_format
     @Override
     public void write(Picture<Coordinates2d> picture, OutputStream outputStream) throws IOException {
-        final Coordinates2d size = PictureFormatUtils.calculateSize(picture);
-        final int width = (int) Math.round(size.getX());
-        final int height = (int) Math.round(size.getY());
+        final Orthotope<Coordinates2d> bounds = PictureFormatUtils.calculateBounds(picture);
+        final int width = (int) Math.round(bounds.getVectors().get(0).getX() + 1);
+        final int height = (int) Math.round(bounds.getVectors().get(1).getY() + 1);
 
         final int paddingExtra = (width * BYTES_PER_PIXEL) % BYTES_ROW_GRANULARITY;
         final int padding = paddingExtra == 0 ? 0 : BYTES_ROW_GRANULARITY - paddingExtra;
@@ -49,7 +50,8 @@ public class BmpWriter implements PictureWriter<Coordinates2d> {
         // Bitmap data
         for(int y = height - 1; y >= 0; y--) {
             for(int x = 0; x < width; x++) {
-                final Color color = picture.getPixelColor(new Coordinates2d(x, y));
+                final Color color = picture.getPixelColor(
+                        new Coordinates2d(x + bounds.getBase().getX(), y + bounds.getBase().getY()));
                 if(color == null) {
                     for(int i = 0; i < BYTES_PER_PIXEL; i++) {
                         writeOne(0, outputStream);

@@ -4,13 +4,13 @@ import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
 
 public final class PictureMutableFactory {
 
-    public static <T extends Coordinates<T>> PictureMutable<T> obtainPictureMutable(final T size) {
-        switch(size.getDimensions()) {
+    public static <T extends Coordinates<T>> PictureMutable<T> obtainPictureMutable(final T reference) {
+        switch(reference.getDimensions()) {
             case 2:
-                return new Picture2dAdapter<>(size);
+                return new Picture2dAdapter<>(reference);
 
             default:
-                return new PictureGenericImpl<>(size);
+                return new PictureGenericImpl<>(reference);
         }
     }
 

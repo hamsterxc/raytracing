@@ -8,19 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 class Picture2dImpl {
 
-    private final int width;
-    private final int height;
-    private final Map<Integer, Map<Integer, Color>> pixels;
-
-    public Picture2dImpl(final int width, final int height) {
-        this.width = width;
-        this.height = height;
-
-        this.pixels = new ConcurrentHashMap<>(width);
-        for(int i = 0; i < width; i++) {
-            pixels.put(i, new ConcurrentHashMap<>(height));
-        }
-    }
+    private final Map<Integer, Map<Integer, Color>> pixels = new ConcurrentHashMap<>();
 
     public Color getPixelColor(final int x, final int y) {
         final Map<Integer, Color> line = pixels.get(x);
@@ -28,44 +16,48 @@ class Picture2dImpl {
     }
 
     public void setPixelColor(final int x, final int y, final Color color) {
-        if((x >= 0) && (x < width) && (y >= 0) && (y < height)) {
-            pixels.get(x).put(y, color);
-        }
+        pixels
+                .computeIfAbsent(x, index -> new ConcurrentHashMap<>())
+                .put(y, color);
     }
 
     public Iterator<int[]> getAllPixelCoordinates() {
-        return new CoordinatesIterator(width, height);
+        return new CoordinatesIterator();
     }
 
     private class CoordinatesIterator implements Iterator<int[]> {
 
-        private final int width;
-        private final int height;
+        private final Iterator<Integer> outer;
+        private Iterator<Integer> inner;
+        private int current;
 
-        private int x = 0;
-        private int y = 0;
+        public CoordinatesIterator() {
+            outer = pixels.keySet().iterator();
+            inner = new Iterator<Integer>() {
+                @Override
+                public boolean hasNext() {
+                    return false;
+                }
 
-        public CoordinatesIterator(final int width, final int height) {
-            this.width = width;
-            this.height = height;
+                @Override
+                public Integer next() {
+                    return null;
+                }
+            };
         }
 
         @Override
         public boolean hasNext() {
-            return (x < width - 1) || (x == width - 1) && (y < height - 1);
+            return inner.hasNext() || outer.hasNext();
         }
 
         @Override
         public int[] next() {
-            final int[] next = new int[]{x, y};
-
-            x++;
-            if(x >= width) {
-                x = 0;
-                y++;
+            if(!inner.hasNext()) {
+                current = outer.next();
+                inner = pixels.get(current).keySet().iterator();
             }
-
-            return next;
+            return new int[]{current, inner.next()};
         }
 
     }

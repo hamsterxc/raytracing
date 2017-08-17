@@ -1,5 +1,7 @@
 package com.lonebytesoft.hamster.raytracing.coordinates;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -23,6 +25,25 @@ public final class CoordinatesCalculator {
         for(int i = 0; i < dimensions; i++) {
             consumer.accept(i);
         }
+    }
+
+    public static <T extends Coordinates<T>> List<Double> collectToList(final T coordinates) {
+        final List<Double> result = new ArrayList<>();
+        CoordinatesCalculator.iterate(coordinates, index -> result.add(coordinates.getCoordinate(index)));
+        return result;
+    }
+
+    public static <T extends Coordinates<T>> T createFromList(final List<Double> coordinates, final T reference) {
+        final int dimensions = coordinates.size();
+        final double[] coords = new double[dimensions];
+        for(int i = 0; i < dimensions; i++) {
+            coords[i] = coordinates.get(i);
+        }
+        return reference.obtain(coords);
+    }
+
+    public static <T extends Coordinates<T>> Iterable<T> getWholePoints(final T min, final T max) {
+        return () -> new WholeCoordinatesIterator<>(min, max);
     }
 
 }

@@ -41,7 +41,7 @@ public class Example3d {
                 new GeneralOrthotope<>(new Coordinates3d(100, 100, 100),
                         Arrays.asList(new Coordinates3d(0, -200, 0), new Coordinates3d(0, 0, -200)),
                         false),
-                new Coordinates2d(100, 100),
+                new Coordinates2d(1024, 1024),
                 new SupersamplingPixelColoringStrategy<>(3, Color.BLACK)
         );
         final BeholderImpl<Coordinates3d, Coordinates2d> beholder = new BeholderImpl<>(eye, screen, Color.BLACK);

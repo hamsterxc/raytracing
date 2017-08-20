@@ -84,6 +84,39 @@ public final class GeometryCalculator {
         }
     }
 
+    // https://en.wikipedia.org/wiki/Snell%27s_law#Vector_form
+    public static <T extends Coordinates<T>> T refract(
+            final T vector, final T normal, final double coeffFrom, final double coeffTo) {
+        final double vectorLength = GeometryCalculator.length(vector);
+        final double normalLength = GeometryCalculator.length(normal);
+
+        final double r = coeffFrom / coeffTo;
+        final double c = -GeometryCalculator.product(vector, normal) / (vectorLength * normalLength);
+
+        final double d = 1.0 - r * r * (1.0 - c * c);
+        if(d >= 0) {
+            final double nCoeff = r * c - Math.sqrt(d);
+            return CoordinatesCalculator.transform(vector,
+                    index -> r * vector.getCoordinate(index) + nCoeff * normal.getCoordinate(index));
+        } else {
+            return reflect(vector, normal);
+        }
+    }
+
+    public static <T extends Coordinates<T>> Ray<T> calculateRefraction(
+            final Ray<T> ray, final T intersection, final T normal,
+            final double coeffFrom, final double coeffTo, final double pushDelta) {
+        if((intersection == null) || (normal == null)) {
+            return null;
+        } else {
+            final T refractionVector = refract(ray.getDirection(), normal, coeffFrom, coeffTo);
+            // todo: hack: pushing ray start out a bit
+            final T refractionStart = push(intersection, refractionVector, pushDelta);
+
+            return new Ray<>(refractionStart, refractionVector);
+        }
+    }
+
     public static <T extends Coordinates<T>> List<T> generateBasis(final T reference) {
         final int dimensions = reference.getDimensions();
         final double[] coords = new double[dimensions];

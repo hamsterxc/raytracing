@@ -5,6 +5,7 @@ import com.lonebytesoft.hamster.raytracing.coordinates.CoordinatesCalculator;
 import com.lonebytesoft.hamster.raytracing.ray.Ray;
 import com.lonebytesoft.hamster.raytracing.shape.feature.GeometryCalculating;
 import com.lonebytesoft.hamster.raytracing.shape.feature.Reflecting;
+import com.lonebytesoft.hamster.raytracing.shape.feature.Refracting;
 import com.lonebytesoft.hamster.raytracing.shape.feature.Surfaced;
 import com.lonebytesoft.hamster.raytracing.shape.feature.Transparent;
 import com.lonebytesoft.hamster.raytracing.util.math.GeometryCalculator;
@@ -23,7 +24,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class GeneralOrthotope<T extends Coordinates<T>>
-        implements GeometryCalculating<T>, Surfaced<T>, Transparent<T>, Reflecting<T> {
+        implements GeometryCalculating<T>, Surfaced<T>, Transparent<T>, Reflecting<T>, Refracting<T> {
 
     private final T base;
     private final List<T> vectors;
@@ -101,6 +102,7 @@ public class GeneralOrthotope<T extends Coordinates<T>>
         final int spaceDimensions = base.getDimensions();
         final int orthotopeDimensions = vectors.size();
 
+        final T normal;
         if(orthotopeDimensions == spaceDimensions) {
             // calculating normal for the closest facet
             // normal is the vector not constructing that facet
@@ -110,9 +112,9 @@ public class GeneralOrthotope<T extends Coordinates<T>>
             } else {
                 final T vector = vectors.get((int) intersection.getFixVectorsIndex());
                 if(intersection.getFixVectorsValueIndex() == 0) {
-                    return CoordinatesCalculator.transform(vector, index -> -vector.getCoordinate(index));
+                    normal = CoordinatesCalculator.transform(vector, index -> -vector.getCoordinate(index));
                 } else {
-                    return vector;
+                    normal = vector;
                 }
             }
         } else if(orthotopeDimensions == spaceDimensions - 1) {
@@ -132,7 +134,7 @@ public class GeneralOrthotope<T extends Coordinates<T>>
 
             final Solution solution = LinearSystemSolver.solve(equations);
             if(solution.getType() == SolutionType.UNIQUE) {
-                return CoordinatesCalculator.transform(base, index -> {
+                normal = CoordinatesCalculator.transform(base, index -> {
                     if(index < spaceDimensions - 1) {
                         return solution.getValues().get(index);
                     } else {
@@ -144,6 +146,12 @@ public class GeneralOrthotope<T extends Coordinates<T>>
             }
         } else {
             throw new IllegalStateException("Cannot calculate normal for an orthotope of dimension < (space dimension)-1");
+        }
+
+        if(isInside(ray.getStart())) {
+            return CoordinatesCalculator.transform(normal, index -> -normal.getCoordinate(index));
+        } else {
+            return normal;
         }
     }
 
@@ -239,6 +247,18 @@ public class GeneralOrthotope<T extends Coordinates<T>>
     @Override
     public Ray<T> calculateReflection(Ray<T> ray) {
         return GeometryCalculator.calculateReflection(ray, calculateIntersectionPoint(ray), calculateNormal(ray), delta);
+    }
+
+    @Override
+    public Ray<T> calculateRefraction(Ray<T> ray, double coeffSpace, double coeffSelf) {
+        final T intersection = calculateIntersectionPoint(ray);
+        final T normal = calculateNormal(ray);
+        // todo: hack: switching inside & outside for "good appearance"?
+        if(isInside(ray.getStart())) {
+            return GeometryCalculator.calculateRefraction(ray, intersection, normal, coeffSpace, coeffSelf, delta);
+        } else {
+            return GeometryCalculator.calculateRefraction(ray, intersection, normal, coeffSelf, coeffSpace, delta);
+        }
     }
 
     private List<Double> calculateIntersectionSolution(final Ray<T> ray, final T base, final List<T> vectors) {
@@ -381,6 +401,24 @@ public class GeneralOrthotope<T extends Coordinates<T>>
             }
         }
         return true;
+    }
+
+    public boolean isInside(final T point) {
+        final Collection<LinearEquation> equations = new ArrayList<>();
+        CoordinatesCalculator.iterate(base, index -> {
+            final List<Double> coeffs = new ArrayList<>();
+            for(final T vector : vectors) {
+                coeffs.add(vector.getCoordinate(index));
+            }
+
+            final double free = point.getCoordinate(index) - base.getCoordinate(index);
+            equations.add(new LinearEquation(coeffs, free));
+        });
+
+        final Solution solution = LinearSystemSolver.solve(equations);
+        return (solution.getType() == SolutionType.UNIQUE) && solution.getValues()
+                .stream()
+                .allMatch(coeff -> (coeff >= 0.0) && (coeff <= 1.0));
     }
 
     private T calculateIntersectionPoint(final Ray<T> ray) {

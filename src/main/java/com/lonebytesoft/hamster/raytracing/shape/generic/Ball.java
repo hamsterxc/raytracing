@@ -5,13 +5,14 @@ import com.lonebytesoft.hamster.raytracing.coordinates.CoordinatesCalculator;
 import com.lonebytesoft.hamster.raytracing.ray.Ray;
 import com.lonebytesoft.hamster.raytracing.shape.feature.GeometryCalculating;
 import com.lonebytesoft.hamster.raytracing.shape.feature.Reflecting;
+import com.lonebytesoft.hamster.raytracing.shape.feature.Refracting;
 import com.lonebytesoft.hamster.raytracing.shape.feature.Surfaced;
 import com.lonebytesoft.hamster.raytracing.shape.feature.Transparent;
 import com.lonebytesoft.hamster.raytracing.util.math.GeometryCalculator;
 import com.lonebytesoft.hamster.raytracing.util.math.MathCalculator;
 
 public class Ball<T extends Coordinates<T>>
-        implements GeometryCalculating<T>, Reflecting<T>, Transparent<T>, Surfaced<T> {
+        implements GeometryCalculating<T>, Reflecting<T>, Refracting<T>, Transparent<T>, Surfaced<T> {
 
     private final T center;
     private final double radius;
@@ -43,17 +44,12 @@ public class Ball<T extends Coordinates<T>>
             return null;
         } else {
             // normal is the radius in point of intersection
-            final T rayStart = ray.getStart();
-            final T startToCenter = CoordinatesCalculator.transform(rayStart,
-                    index -> center.getCoordinate(index) - rayStart.getCoordinate(index));
-            final double startToCenterLength = GeometryCalculator.length(startToCenter);
-
-            if(startToCenterLength >= radius) {
-                return CoordinatesCalculator.transform(intersection,
-                        index -> intersection.getCoordinate(index) - center.getCoordinate(index));
-            } else {
+            if(isInside(ray.getStart())) {
                 return CoordinatesCalculator.transform(intersection,
                         index -> center.getCoordinate(index) - intersection.getCoordinate(index));
+            } else {
+                return CoordinatesCalculator.transform(intersection,
+                        index -> intersection.getCoordinate(index) - center.getCoordinate(index));
             }
         }
     }
@@ -61,6 +57,17 @@ public class Ball<T extends Coordinates<T>>
     @Override
     public Ray<T> calculateReflection(Ray<T> ray) {
         return GeometryCalculator.calculateReflection(ray, calculateIntersection(ray), calculateNormal(ray), delta);
+    }
+
+    @Override
+    public Ray<T> calculateRefraction(Ray<T> ray, double coeffSpace, double coeffSelf) {
+        final T intersection = calculateIntersection(ray);
+        final T normal = calculateNormal(ray);
+        if(isInside(ray.getStart())) {
+            return GeometryCalculator.calculateRefraction(ray, intersection, normal, coeffSelf, coeffSpace, delta);
+        } else {
+            return GeometryCalculator.calculateRefraction(ray, intersection, normal, coeffSpace, coeffSelf, delta);
+        }
     }
 
     @Override
@@ -193,6 +200,11 @@ public class Ball<T extends Coordinates<T>>
         } else {
             return null;
         }
+    }
+
+    private boolean isInside(final T point) {
+        return GeometryCalculator.length(CoordinatesCalculator.transform(point,
+                index -> point.getCoordinate(index) - center.getCoordinate(index))) <= radius;
     }
 
     @Override

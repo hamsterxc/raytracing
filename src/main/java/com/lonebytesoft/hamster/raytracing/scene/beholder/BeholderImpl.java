@@ -29,7 +29,8 @@ public class BeholderImpl<S extends Coordinates<S>, F extends Coordinates<F>>
 
     private static final Logger logger = LoggerFactory.getLogger(BeholderImpl.class);
 
-    private static final double ILLUMINANCE_AMOUNT_MAX = 10.0;
+    // todo: extract magic constant somewhere
+    public static final double ILLUMINANCE_AMOUNT_MAX = 10.0;
 
     private final S eye;
     private final Screen<S, F> screen;
@@ -119,13 +120,7 @@ public class BeholderImpl<S extends Coordinates<S>, F extends Coordinates<F>>
     }
 
     private double calculateIlluminance(final double lightAmount) {
-        if(lightAmount < 0.0) {
-            return 0.0;
-        } else if(lightAmount > ILLUMINANCE_AMOUNT_MAX) {
-            return 1.0;
-        } else {
-            return lightAmount / ILLUMINANCE_AMOUNT_MAX;
-        }
+        return lightAmount / ILLUMINANCE_AMOUNT_MAX;
     }
 
     @Override

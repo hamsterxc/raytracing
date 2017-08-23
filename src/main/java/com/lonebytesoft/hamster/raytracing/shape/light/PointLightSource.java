@@ -9,24 +9,23 @@ import com.lonebytesoft.hamster.raytracing.util.math.MathCalculator;
 
 public class PointLightSource<T extends Coordinates<T>> implements LightSource<T> {
 
-    private final T point;
+    private final T source;
     private final double brightness;
 
     private RayCollisionDistanceCalculating<T> rayTracer;
 
-    public PointLightSource(final T point, final double brightness) {
-        this.point = point;
+    public PointLightSource(final T source, final double brightness) {
+        this.source = source;
         this.brightness = brightness;
     }
 
     @Override
     public Double calculateLightAmount(T point, T normal) {
-        final T vector = CoordinatesCalculator.transform(this.point,
-                index -> this.point.getCoordinate(index) - point.getCoordinate(index));
+        final T vector = CoordinatesCalculator.transform(source,
+                index -> source.getCoordinate(index) - point.getCoordinate(index));
         final double distance = GeometryCalculator.length(vector);
-        final Double rayCollisionDistance = calculateDistance(this.point, point);
-        if((rayCollisionDistance == null) || (rayCollisionDistance > distance)
-                || (MathCalculator.isEqualApproximately(rayCollisionDistance, distance))) {
+        final Double rayCollisionDistance = calculateCollisionDistance(point);
+        if(isVisible(distance, rayCollisionDistance)) {
             final double cos;
             if(normal == null) {
                 cos = 1.0;
@@ -54,21 +53,22 @@ public class PointLightSource<T extends Coordinates<T>> implements LightSource<T
         double denominator = 0.0;
         for(int i = 0; i < dimensions; i++) {
             final double rayDirectionCoordinate = ray.getDirection().getCoordinate(i);
-            numerator += rayDirectionCoordinate * (point.getCoordinate(i) - ray.getStart().getCoordinate(i));
+            numerator += rayDirectionCoordinate * (source.getCoordinate(i) - ray.getStart().getCoordinate(i));
             denominator += rayDirectionCoordinate * rayDirectionCoordinate;
         }
 
         final double multiplier = numerator / denominator;
-        final T nearest = GeometryCalculator.follow(ray.getStart(), ray.getDirection(),
-                multiplier < 0 ? 0 : multiplier);
+        final T nearest = multiplier < 0
+                ? ray.getStart()
+                : GeometryCalculator.follow(ray.getStart(), ray.getDirection(), multiplier);
 
         // todo: smarter glow calculation
         // e.g., if glow is visible not in the nearest to source point but in some other on this ray
-        final T vector = CoordinatesCalculator.transform(point,
-                index -> nearest.getCoordinate(index) - point.getCoordinate(index));
+        final T vector = CoordinatesCalculator.transform(source,
+                index -> nearest.getCoordinate(index) - source.getCoordinate(index));
         final double distance = GeometryCalculator.length(vector);
-        final Double rayCollisionDistance = calculateDistance(point, nearest);
-        if((rayCollisionDistance == null) || (rayCollisionDistance > distance)) {
+        final Double rayCollisionDistance = calculateCollisionDistance(nearest);
+        if(isVisible(distance, rayCollisionDistance)) {
             // todo: is glow amount calculation reasonable?
             final double amount = brightness / (distance * distance);
             return Math.pow(amount, 1.0/4.0);
@@ -81,15 +81,21 @@ public class PointLightSource<T extends Coordinates<T>> implements LightSource<T
         this.rayTracer = rayTracer;
     }
 
-    private Double calculateDistance(final T from, final T to) {
+    protected Double calculateCollisionDistance(final T point) {
         if(rayTracer == null) {
             return null;
         } else {
-            final T direction = CoordinatesCalculator.transform(from,
-                    index -> to.getCoordinate(index) - from.getCoordinate(index));
-            final Ray<T> ray = new Ray<>(from, direction);
+            final T direction = CoordinatesCalculator.transform(source,
+                    index -> point.getCoordinate(index) - source.getCoordinate(index));
+            final Ray<T> ray = new Ray<>(source, direction);
             return rayTracer.calculateRayCollisionDistance(ray);
         }
+    }
+
+    private boolean isVisible(final double distance, final Double collisionDistance) {
+        return (collisionDistance == null)
+                || (collisionDistance > distance)
+                || MathCalculator.isEqualApproximately(collisionDistance, distance);
     }
 
 }

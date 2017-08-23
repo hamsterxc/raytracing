@@ -25,19 +25,27 @@ public final class ColorCalculator {
         return new Color(red / weight, green / weight, blue / weight);
     }
 
+    /**
+     * Illuminates given color shifting it towards black or white
+     * @param color color to illuminate
+     * @param illuminance [-1..1], -1 shifts all the way to black (total darkness), 1 shifts totally to white (absolute light)
+     * @return resulting color
+     */
     public static Color illuminate(final Color color, final double illuminance) {
-        return new Color(
-                color.getRed() + (1.0 - color.getRed()) * illuminance,
-                color.getGreen() + (1.0 - color.getGreen()) * illuminance,
-                color.getBlue() + (1.0 - color.getBlue()) * illuminance
-        );
+        final double amount = illuminance < -1.0 ? -1.0 : (illuminance > 1.0 ? 1.0 : illuminance);
+        if(amount >= 0.0) {
+            return new Color(
+                    color.getRed() + (1.0 - color.getRed()) * amount,
+                    color.getGreen() + (1.0 - color.getGreen()) * amount,
+                    color.getBlue() + (1.0 - color.getBlue()) * amount
+            );
+        } else {
+            return new Color(
+                    color.getRed() * (1.0 + amount),
+                    color.getGreen() * (1.0 + amount),
+                    color.getBlue() * (1.0 + amount)
+            );
+        }
     }
-    
-//    public static Color illuminate(final Color color, final double illuminance) {
-//        final ColorHsv colorHsv = new ColorHsv(color);
-//        final ColorHsv illuminated = new ColorHsv(colorHsv.getHue(), colorHsv.getSaturation(),
-//                colorHsv.getValue() + (1.0 - colorHsv.getValue()) * illuminance);
-//        return illuminated.toColor();
-//    }
 
 }

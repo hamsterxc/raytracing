@@ -37,7 +37,7 @@ public class ScreenShapeSurfaced<S extends Coordinates<S>, F extends Coordinates
     }
 
     @Override
-    protected Orthotope<F> getPixelBoundaries(F pixelCoordinates) {
+    protected Surfaced<F> getPixelBoundaries(F pixelCoordinates) {
         CoordinatesCalculator.iterate(pixelCoordinates, index -> {
             final double coordinate = pixelCoordinates.getCoordinate(index);
             if((coordinate < 0) || (coordinate >= resolution.getCoordinate(index))) {

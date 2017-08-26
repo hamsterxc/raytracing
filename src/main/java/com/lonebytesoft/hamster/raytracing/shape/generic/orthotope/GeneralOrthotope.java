@@ -62,30 +62,6 @@ public class GeneralOrthotope<T extends Coordinates<T>>
         return vectors;
     }
 
-    public <F extends Coordinates<F>> T calculatePoint(final F proportion) {
-        final int dimensionsFlat = proportion.getDimensions();
-
-        if(vectors.size() != dimensionsFlat) {
-            throw new IllegalArgumentException("Vectors count not equal to proportion dimensionality");
-        }
-        if(!isInfinite) {
-            CoordinatesCalculator.iterate(proportion, index -> {
-                final double coordinate = proportion.getCoordinate(index);
-                if((coordinate < 0.0) || (coordinate > 1.0)) {
-                    throw new IllegalArgumentException("Proportion out of bounds for finite orthotope");
-                }
-            });
-        }
-
-        return CoordinatesCalculator.transform(base, index -> {
-            double coordinate = base.getCoordinate(index);
-            for(int i = 0; i < dimensionsFlat; i++) {
-                coordinate += vectors.get(i).getCoordinate(index) * proportion.getCoordinate(i);
-            }
-            return coordinate;
-        });
-    }
-
     @Override
     public Double calculateDistance(Ray<T> ray) {
         final OrthotopeIntersection intersection = calculateClosestIntersection(ray);
@@ -403,7 +379,7 @@ public class GeneralOrthotope<T extends Coordinates<T>>
         return true;
     }
 
-    public boolean isInside(final T point) {
+    private boolean isInside(final T point) {
         final Collection<LinearEquation> equations = new ArrayList<>();
         CoordinatesCalculator.iterate(base, index -> {
             final List<Double> coeffs = new ArrayList<>();

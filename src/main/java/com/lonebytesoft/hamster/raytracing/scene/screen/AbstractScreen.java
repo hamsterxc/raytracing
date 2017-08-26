@@ -7,7 +7,7 @@ import com.lonebytesoft.hamster.raytracing.picture.Picture;
 import com.lonebytesoft.hamster.raytracing.picture.PictureMutable;
 import com.lonebytesoft.hamster.raytracing.picture.PictureMutableFactory;
 import com.lonebytesoft.hamster.raytracing.scene.screen.pixelcolor.PixelColoringStrategy;
-import com.lonebytesoft.hamster.raytracing.shape.generic.orthotope.Orthotope;
+import com.lonebytesoft.hamster.raytracing.shape.feature.Surfaced;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +37,7 @@ public abstract class AbstractScreen<S extends Coordinates<S>, F extends Coordin
                 CoordinatesCalculator.transform(resolution, index -> 0.0), resolution)) {
             executorService.submit(() -> {
                 logger.debug("Getting pixel {}", pixelCoordinates);
-                final Orthotope<F> pixelBoundaries = getPixelBoundaries(pixelCoordinates);
+                final Surfaced<F> pixelBoundaries = getPixelBoundaries(pixelCoordinates);
                 picture.setPixelColor(pixelCoordinates, coloringStrategy.getPixelColor(pixelBoundaries, coordinates -> {
                     final S coordinatesSolid = translate(coordinates);
                     return rayTracer.apply(coordinatesSolid);
@@ -55,7 +55,7 @@ public abstract class AbstractScreen<S extends Coordinates<S>, F extends Coordin
         return picture;
     }
 
-    protected abstract Orthotope<F> getPixelBoundaries(F pixelCoordinates);
+    protected abstract Surfaced<F> getPixelBoundaries(F pixelCoordinates);
 
     protected abstract S translate(F coordinates);
 

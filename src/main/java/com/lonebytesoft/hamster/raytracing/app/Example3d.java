@@ -44,7 +44,7 @@ public class Example3d {
                 new Coordinates2d(1.0, 1.0),
                 new Coordinates2d(0.0, 0.0),
                 new Coordinates2d(1024, 1024),
-                new SupersamplingPixelColoringStrategy<>(3, Color.BLACK)
+                new SupersamplingPixelColoringStrategy<>(3, Color.BLACK, new Coordinates2d(0, 0))
         );
         final BeholderImpl<Coordinates3d, Coordinates2d> beholder = new BeholderImpl<>(eye, screen, Color.BLACK);
 

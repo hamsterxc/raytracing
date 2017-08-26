@@ -8,7 +8,7 @@ import com.lonebytesoft.hamster.raytracing.format.PictureWriter;
 import com.lonebytesoft.hamster.raytracing.picture.Picture;
 import com.lonebytesoft.hamster.raytracing.scene.beholder.BeholderImpl;
 import com.lonebytesoft.hamster.raytracing.scene.screen.Screen;
-import com.lonebytesoft.hamster.raytracing.scene.screen.ScreenOrthotope;
+import com.lonebytesoft.hamster.raytracing.scene.screen.ScreenShapeSurfaced;
 import com.lonebytesoft.hamster.raytracing.scene.screen.pixelcolor.SupersamplingPixelColoringStrategy;
 import com.lonebytesoft.hamster.raytracing.shape.CompoundShape;
 import com.lonebytesoft.hamster.raytracing.shape.Shape;
@@ -37,10 +37,12 @@ public class Example3d {
         logger.info("Start");
 
         final Coordinates3d eye = new Coordinates3d(0, 0, 0);
-        final Screen<Coordinates3d, Coordinates2d> screen = new ScreenOrthotope<>(
-                new GeneralOrthotope<>(new Coordinates3d(100, 100, 100),
-                        Arrays.asList(new Coordinates3d(0, -200, 0), new Coordinates3d(0, 0, -200)),
+        final Screen<Coordinates3d, Coordinates2d> screen = new ScreenShapeSurfaced<>(
+                new GeneralOrthotope<>(new Coordinates3d(100, -100, -100),
+                        Arrays.asList(new Coordinates3d(0, 200, 0), new Coordinates3d(0, 0, 200)),
                         false),
+                new Coordinates2d(1.0, 1.0),
+                new Coordinates2d(0.0, 0.0),
                 new Coordinates2d(1024, 1024),
                 new SupersamplingPixelColoringStrategy<>(3, Color.BLACK)
         );

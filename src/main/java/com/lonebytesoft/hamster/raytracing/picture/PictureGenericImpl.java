@@ -4,6 +4,7 @@ import com.lonebytesoft.hamster.raytracing.color.Color;
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
 import com.lonebytesoft.hamster.raytracing.coordinates.CoordinatesCalculator;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -20,14 +21,22 @@ class PictureGenericImpl<T extends Coordinates<T>> implements PictureMutable<T> 
 
     @Override
     public Color getPixelColor(T pixelCoordinates) {
-        return pixelColors.get(CoordinatesCalculator.collectToList(CoordinatesCalculator.floor(pixelCoordinates)));
+        return pixelColors.get(convertToList(pixelCoordinates));
     }
 
     @Override
     public void setPixelColor(final T pixelCoordinates, final Color pixelColor) {
         if(pixelColor != null) {
-            pixelColors.put(CoordinatesCalculator.collectToList(CoordinatesCalculator.floor(pixelCoordinates)), pixelColor);
+            pixelColors.put(convertToList(pixelCoordinates), pixelColor);
         }
+    }
+
+    private List<Double> convertToList(final T coordinates) {
+        final List<Double> result = new ArrayList<>();
+        for(final double coordinate : coordinates) {
+            result.add(Math.floor(coordinate));
+        }
+        return result;
     }
 
     @Override

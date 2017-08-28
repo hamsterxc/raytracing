@@ -48,8 +48,7 @@ public class BeholderImpl<S extends Coordinates<S>, F extends Coordinates<F>>
     @Override
     public Picture<F> getPicture() {
         return screen.getPicture(coordinates -> {
-            final S direction = CoordinatesCalculator.transform(coordinates,
-                    index -> coordinates.getCoordinate(index) - eye.getCoordinate(index));
+            final S direction = CoordinatesCalculator.subtract(coordinates, eye);
             final Ray<S> ray = new Ray<>(coordinates, direction);
             return traceRay(ray);
         });

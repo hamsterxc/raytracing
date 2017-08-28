@@ -21,8 +21,7 @@ public class PointLightSource<T extends Coordinates<T>> implements LightSource<T
 
     @Override
     public Double calculateLightAmount(T point, T normal) {
-        final T vector = CoordinatesCalculator.transform(source,
-                index -> source.getCoordinate(index) - point.getCoordinate(index));
+        final T vector = CoordinatesCalculator.subtract(source, point);
         final double distance = GeometryCalculator.length(vector);
         final Double rayCollisionDistance = calculateCollisionDistance(point);
         if(isVisible(distance, rayCollisionDistance)) {
@@ -64,8 +63,7 @@ public class PointLightSource<T extends Coordinates<T>> implements LightSource<T
 
         // todo: smarter glow calculation
         // e.g., if glow is visible not in the nearest to source point but in some other on this ray
-        final T vector = CoordinatesCalculator.transform(source,
-                index -> nearest.getCoordinate(index) - source.getCoordinate(index));
+        final T vector = CoordinatesCalculator.subtract(nearest, source);
         final double distance = GeometryCalculator.length(vector);
         final Double rayCollisionDistance = calculateCollisionDistance(nearest);
         if(isVisible(distance, rayCollisionDistance)) {
@@ -85,8 +83,7 @@ public class PointLightSource<T extends Coordinates<T>> implements LightSource<T
         if(rayTracer == null) {
             return null;
         } else {
-            final T direction = CoordinatesCalculator.transform(source,
-                    index -> point.getCoordinate(index) - source.getCoordinate(index));
+            final T direction = CoordinatesCalculator.subtract(point, source);
             final Ray<T> ray = new Ray<>(source, direction);
             return rayTracer.calculateRayCollisionDistance(ray);
         }

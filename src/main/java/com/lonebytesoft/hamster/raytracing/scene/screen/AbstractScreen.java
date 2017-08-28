@@ -34,7 +34,7 @@ public abstract class AbstractScreen<S extends Coordinates<S>, F extends Coordin
         final ExecutorService executorService = Executors.newWorkStealingPool();
 
         for(final F pixelCoordinates : CoordinatesCalculator.getWholePoints(
-                CoordinatesCalculator.transform(resolution, index -> 0.0), resolution)) {
+                CoordinatesCalculator.constant(resolution, 0.0), resolution)) {
             executorService.submit(() -> {
                 logger.debug("Getting pixel {}", pixelCoordinates);
                 final Surfaced<F> pixelBoundaries = getPixelBoundaries(pixelCoordinates);

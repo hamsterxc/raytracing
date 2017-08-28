@@ -12,7 +12,7 @@ public class SimplePixelColoringStrategy<T extends Coordinates<T>> implements Pi
     private final T sample;
 
     public SimplePixelColoringStrategy(final T reference) {
-        this.sample = CoordinatesCalculator.transform(reference, index -> 0.5);
+        this.sample = CoordinatesCalculator.constant(reference, 0.5);
     }
 
     @Override

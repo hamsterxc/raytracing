@@ -26,8 +26,7 @@ public class ConeLightSource<T extends Coordinates<T>> extends PointLightSource<
 
     @Override
     protected Double calculateCollisionDistance(T point) {
-        final T vector = CoordinatesCalculator.transform(source,
-                index -> point.getCoordinate(index) - source.getCoordinate(index));
+        final T vector = CoordinatesCalculator.subtract(point, source);
         final double cos = GeometryCalculator.product(vector, direction) /
                 (GeometryCalculator.length(vector) * GeometryCalculator.length(direction));
         if(cos >= this.cos) {

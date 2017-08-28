@@ -88,7 +88,7 @@ public class GeneralOrthotope<T extends Coordinates<T>>
             } else {
                 final T vector = vectors.get((int) intersection.getFixVectorsIndex());
                 if(intersection.getFixVectorsValueIndex() == 0) {
-                    normal = CoordinatesCalculator.transform(vector, index -> -vector.getCoordinate(index));
+                    normal = CoordinatesCalculator.negate(vector);
                 } else {
                     normal = vector;
                 }
@@ -125,7 +125,7 @@ public class GeneralOrthotope<T extends Coordinates<T>>
         }
 
         if(isInside(ray.getStart())) {
-            return CoordinatesCalculator.transform(normal, index -> -normal.getCoordinate(index));
+            return CoordinatesCalculator.negate(normal);
         } else {
             return normal;
         }

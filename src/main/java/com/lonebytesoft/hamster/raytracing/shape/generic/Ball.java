@@ -45,11 +45,9 @@ public class Ball<T extends Coordinates<T>>
         } else {
             // normal is the radius in point of intersection
             if(isInside(ray.getStart())) {
-                return CoordinatesCalculator.transform(intersection,
-                        index -> center.getCoordinate(index) - intersection.getCoordinate(index));
+                return CoordinatesCalculator.subtract(center, intersection);
             } else {
-                return CoordinatesCalculator.transform(intersection,
-                        index -> intersection.getCoordinate(index) - center.getCoordinate(index));
+                return CoordinatesCalculator.subtract(intersection, center);
             }
         }
     }
@@ -203,8 +201,7 @@ public class Ball<T extends Coordinates<T>>
     }
 
     private boolean isInside(final T point) {
-        return GeometryCalculator.length(CoordinatesCalculator.transform(point,
-                index -> point.getCoordinate(index) - center.getCoordinate(index))) <= radius;
+        return GeometryCalculator.length(CoordinatesCalculator.subtract(point, center)) <= radius;
     }
 
     @Override

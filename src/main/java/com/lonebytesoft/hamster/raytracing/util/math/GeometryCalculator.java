@@ -62,6 +62,19 @@ public final class GeometryCalculator {
         });
     }
 
+    public static <T extends Coordinates<T>> Ray<T> calculatePassThrough(
+            final Ray<T> ray, final T intersection, final double pushDelta) {
+        if(intersection == null) {
+            return null;
+        } else {
+            final T rayDirection = ray.getDirection();
+            // todo: hack: pushing ray start out a bit
+            final T start = push(intersection, rayDirection, pushDelta);
+
+            return new Ray<>(start, rayDirection);
+        }
+    }
+
     // https://math.stackexchange.com/q/13261
     public static <T extends Coordinates<T>> T reflect(final T vector, final T normal) {
         final double product = GeometryCalculator.product(vector, normal);

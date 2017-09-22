@@ -209,15 +209,7 @@ public class GeneralOrthotope<T extends Coordinates<T>>
 
     @Override
     public Ray<T> calculatePassThrough(Ray<T> ray) {
-        final T intersectionPoint = calculateIntersectionPoint(ray);
-        if(intersectionPoint == null) {
-            return null;
-        } else {
-            final T rayDirection = ray.getDirection();
-            // todo: hack: pushing ray start out a bit
-            final T start = GeometryCalculator.push(intersectionPoint, rayDirection, delta);
-            return new Ray<>(start, rayDirection);
-        }
+        return GeometryCalculator.calculatePassThrough(ray, calculateIntersectionPoint(ray), delta);
     }
 
     @Override

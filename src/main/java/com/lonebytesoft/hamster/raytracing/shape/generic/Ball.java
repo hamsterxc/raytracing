@@ -70,15 +70,7 @@ public class Ball<T extends Coordinates<T>>
 
     @Override
     public Ray<T> calculatePassThrough(Ray<T> ray) {
-        final T intersection = calculateIntersection(ray);
-        if(intersection == null) {
-            return null;
-        } else {
-            final T rayDirection = ray.getDirection();
-            // todo: hack: pushing ray start out a bit
-            final T start = GeometryCalculator.push(intersection, rayDirection, delta);
-            return new Ray<>(start, rayDirection);
-        }
+        return GeometryCalculator.calculatePassThrough(ray, calculateIntersection(ray), delta);
     }
 
     /**

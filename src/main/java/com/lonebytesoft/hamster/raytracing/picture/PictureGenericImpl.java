@@ -40,8 +40,8 @@ class PictureGenericImpl<T extends Coordinates<T>> implements PictureMutable<T> 
     }
 
     @Override
-    public Iterator<T> getAllPixelCoordinates() {
-        return new CoordinatesIterator();
+    public Iterable<T> getAllPixelCoordinates() {
+        return CoordinatesIterator::new;
     }
 
     private class CoordinatesIterator implements Iterator<T> {

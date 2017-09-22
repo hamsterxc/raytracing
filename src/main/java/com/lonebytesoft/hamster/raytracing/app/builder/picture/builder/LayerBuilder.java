@@ -17,7 +17,6 @@ import com.lonebytesoft.hamster.raytracing.shape.feature.Reflecting;
 import com.lonebytesoft.hamster.raytracing.shape.feature.Refracting;
 import com.lonebytesoft.hamster.raytracing.shape.feature.Surfaced;
 import com.lonebytesoft.hamster.raytracing.shape.feature.Transparent;
-import com.lonebytesoft.hamster.raytracing.util.Utils;
 
 @SuppressWarnings("unchecked")
 public class LayerBuilder<T extends Coordinates<T>> {
@@ -31,11 +30,11 @@ public class LayerBuilder<T extends Coordinates<T>> {
     public <F extends Coordinates<F>> ShapeLayer<T> buildLayer(final LayerDefinition layerDefinition, final Object entity) {
         switch(layerDefinition.getType()) {
             case REFLECTING:
-                return new ReflectingAdapter<>(Utils.cast(entity, Reflecting.class));
+                return new ReflectingAdapter<>(PictureBuilderUtils.cast(entity, Reflecting.class));
 
             case REFRACTING:
                 final RefractingLayerDefinition refractingLayerDefinition = (RefractingLayerDefinition) layerDefinition;
-                return new RefractingAdapter<>(Utils.cast(entity, Refracting.class), refractingLayerDefinition.getCoeff());
+                return new RefractingAdapter<>(PictureBuilderUtils.cast(entity, Refracting.class), refractingLayerDefinition.getCoeff());
 
             case SOLID_COLORED:
                 final SolidColoredLayerDefinition solidColoredLayerDefinition = (SolidColoredLayerDefinition) layerDefinition;
@@ -43,7 +42,7 @@ public class LayerBuilder<T extends Coordinates<T>> {
 
             case TEXTURED:
                 final TexturedLayerDefinition texturedLayerDefinition = (TexturedLayerDefinition) layerDefinition;
-                final Surfaced<T> surfaced = Utils.cast(entity, Surfaced.class);
+                final Surfaced<T> surfaced = PictureBuilderUtils.cast(entity, Surfaced.class);
                 switch(texturedLayerDefinition.getTextureType()) {
                     case CHECKERS:
                         final TexturedCheckersLayerDefinition texturedCheckersLayerDefinition =
@@ -60,7 +59,7 @@ public class LayerBuilder<T extends Coordinates<T>> {
                 }
 
             case TRANSPARENT:
-                return new TransparentAdapter<>(Utils.cast(entity, Transparent.class));
+                return new TransparentAdapter<>(PictureBuilderUtils.cast(entity, Transparent.class));
 
             default:
                 throw new RuntimeException("Unknown layer type: " + layerDefinition.getType());

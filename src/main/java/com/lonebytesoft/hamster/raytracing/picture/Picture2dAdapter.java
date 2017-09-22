@@ -35,8 +35,8 @@ class Picture2dAdapter<T extends Coordinates<T>> implements PictureMutable<T> {
     }
 
     @Override
-    public Iterator<T> getAllPixelCoordinates() {
-        return new CoordinatesIterator(picture.getAllPixelCoordinates());
+    public Iterable<T> getAllPixelCoordinates() {
+        return () -> new CoordinatesIterator(picture.getAllPixelCoordinates());
     }
 
     private class CoordinatesIterator implements Iterator<T> {

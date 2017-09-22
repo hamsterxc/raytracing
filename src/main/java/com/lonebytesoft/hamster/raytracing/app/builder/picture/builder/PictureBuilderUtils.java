@@ -1,12 +1,6 @@
-package com.lonebytesoft.hamster.raytracing.util;
+package com.lonebytesoft.hamster.raytracing.app.builder.picture.builder;
 
-import java.util.Iterator;
-
-public final class Utils {
-
-    public static <T> Iterable<T> obtainIterable(final Iterator<T> iterator) {
-        return () -> iterator;
-    }
+final class PictureBuilderUtils {
 
     public static <T> T cast(final Object entity, final Class<T> clazz) {
         if(clazz.isAssignableFrom(entity.getClass())) {

@@ -3,7 +3,6 @@ package com.lonebytesoft.hamster.raytracing.format.writer;
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
 import com.lonebytesoft.hamster.raytracing.picture.Picture;
 import com.lonebytesoft.hamster.raytracing.shape.generic.orthotope.Orthotope;
-import com.lonebytesoft.hamster.raytracing.util.Utils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,7 +16,7 @@ final class PictureFormatUtils {
         double[] delta = null;
         T reference = null;
 
-        for(final T coordinates : Utils.obtainIterable(picture.getAllPixelCoordinates())) {
+        for(final T coordinates : picture.getAllPixelCoordinates()) {
             if(base == null) {
                 dimensions = coordinates.getDimensions();
                 base = new double[dimensions];

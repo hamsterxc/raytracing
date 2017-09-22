@@ -19,7 +19,6 @@ import com.lonebytesoft.hamster.raytracing.format.writer.BmpWriter;
 import com.lonebytesoft.hamster.raytracing.picture.Picture;
 import com.lonebytesoft.hamster.raytracing.picture.PictureMutable;
 import com.lonebytesoft.hamster.raytracing.picture.PictureMutableFactory;
-import com.lonebytesoft.hamster.raytracing.util.Utils;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -285,7 +284,7 @@ public class TestRunner {
 
     private <T extends Coordinates<T>> Picture<T> emulateWriteRead(final Picture<T> picture) {
         PictureMutable<T> transformed = null;
-        for(final T coordinate : Utils.obtainIterable(picture.getAllPixelCoordinates())) {
+        for(final T coordinate : picture.getAllPixelCoordinates()) {
             if(transformed == null) {
                 transformed = PictureMutableFactory.obtainPictureMutable(coordinate);
             }

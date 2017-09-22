@@ -11,7 +11,6 @@ import com.lonebytesoft.hamster.raytracing.shape.feature.GeometryCalculating;
 import com.lonebytesoft.hamster.raytracing.shape.feature.Surfaced;
 import com.lonebytesoft.hamster.raytracing.shape.generic.Ball;
 import com.lonebytesoft.hamster.raytracing.shape.generic.orthotope.GeneralOrthotope;
-import com.lonebytesoft.hamster.raytracing.util.Utils;
 
 import java.util.stream.Collectors;
 
@@ -27,12 +26,12 @@ public class ShapeBuilder<T extends Coordinates<T>> {
     }
 
     public Surfaced<T> buildSurfaced(final ShapeDefinition shapeDefinition) {
-        return Utils.cast(buildEntity(shapeDefinition), Surfaced.class);
+        return PictureBuilderUtils.cast(buildEntity(shapeDefinition), Surfaced.class);
     }
 
     public Shape<T> buildShape(final ShapeDefinition shapeDefinition) {
         final Object entity = buildEntity(shapeDefinition);
-        final CompoundShape<T> shape = new CompoundShape<>(Utils.cast(entity, GeometryCalculating.class));
+        final CompoundShape<T> shape = new CompoundShape<>(PictureBuilderUtils.cast(entity, GeometryCalculating.class));
         for(final LayerDefinition layerDefinition : shapeDefinition.getLayers()) {
             shape.addLayer(layerBuilder.buildLayer(layerDefinition, entity), layerDefinition.getWeight());
         }

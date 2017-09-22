@@ -5,7 +5,6 @@ import com.lonebytesoft.hamster.raytracing.app.builder.code.builder.ExpressionBu
 import com.lonebytesoft.hamster.raytracing.app.builder.code.builder.ImportsDetailedBuilder;
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.scene.definition.SceneDefinition;
 
-// todo: working copy changes
 public class ImportsDetailedBuilderFactory implements BuilderFactory<ExpressionBuilder<SceneDefinition>> {
 
     @Override
@@ -20,14 +19,14 @@ public class ImportsDetailedBuilderFactory implements BuilderFactory<ExpressionB
             return new PreConeLightImportsDetailedBuilder();
         } else if(commit.isOlder(Commit.ADDED_SURFACED_SCREEN)) {
             return new PreScreenSurfacedImportsDetailedBuilder();
-        } else if(commit.isOlder(Commit.WORKING_COPY)) {
-            return new PreWorkingCopyImportsDetailedBuilder();
+        } else if(commit.isOlder(Commit.REGRESSION_PERFORMANCE_TESTS)) {
+            return new PreTestsImportsDetailedBuilder();
         } else {
             return new ImportsDetailedBuilder();
         }
     }
     
-    private static class PreWorkingCopyImportsDetailedBuilder extends ImportsDetailedBuilder {
+    private static class PreTestsImportsDetailedBuilder extends ImportsDetailedBuilder {
         @Override
         public String build(SceneDefinition definition) {
             return super.build(definition)
@@ -38,7 +37,7 @@ public class ImportsDetailedBuilderFactory implements BuilderFactory<ExpressionB
         }
     }
 
-    private static class PreScreenSurfacedImportsDetailedBuilder extends PreWorkingCopyImportsDetailedBuilder {
+    private static class PreScreenSurfacedImportsDetailedBuilder extends PreTestsImportsDetailedBuilder {
         @Override
         public String build(SceneDefinition definition) {
             return super.build(definition)

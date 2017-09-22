@@ -58,11 +58,16 @@ public enum Commit {
             "0ef153c68abff788b21eff752106f085006d6a24",
             "Cleaned up log4j config, removed redundant Spring dependencies",
             REFACTORED_COORDINATES_CALCULATOR),
+    REGRESSION_PERFORMANCE_TESTS(
+            "78fcec053a131c3208361d6821d68c4a419a2e65",
+            "Added regression and performance tests Shell script test wrapper Scene XML definition parser Picture builder for XML definitions Code builder for XML definitions Sample definitions",
+            CLEANED_UP_LOG4J_POM
+    ),
 
     WORKING_COPY(
             null,
             "<working copy>",
-            CLEANED_UP_LOG4J_POM),
+            REGRESSION_PERFORMANCE_TESTS),
     ;
 
     private final String hash;

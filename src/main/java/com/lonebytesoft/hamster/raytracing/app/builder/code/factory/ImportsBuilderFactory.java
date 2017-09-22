@@ -5,19 +5,18 @@ import com.lonebytesoft.hamster.raytracing.app.builder.code.builder.ExpressionBu
 import com.lonebytesoft.hamster.raytracing.app.builder.code.builder.ImportsBuilder;
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.scene.definition.SceneDefinition;
 
-// todo: working copy changes
 public class ImportsBuilderFactory implements BuilderFactory<ExpressionBuilder<SceneDefinition>> {
 
     @Override
     public ExpressionBuilder<SceneDefinition> build(Commit commit) {
-        if(commit.isOlder(Commit.WORKING_COPY)) {
-            return new ImportsBuilderFactory.PreWorkingCopyImportsBuilder();
+        if(commit.isOlder(Commit.REGRESSION_PERFORMANCE_TESTS)) {
+            return new PreTestsImportsBuilder();
         } else {
             return new ImportsBuilder();
         }
     }
 
-    private static class PreWorkingCopyImportsBuilder extends ImportsBuilder {
+    private static class PreTestsImportsBuilder extends ImportsBuilder {
         @Override
         public String build(SceneDefinition definition) {
             return super.build(definition)

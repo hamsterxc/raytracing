@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<scene xmlns="http://lonebytesoft.com"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://lonebytesoft.com scene.xsd">
+
+    <colorDefault>0 0 0</colorDefault>
+
+    <eye coordinates="0 0 0"/>
+
+    <screen>
+        <shape>
+            <orthotope>
+                <base coordinates="100 100 100"/>
+                <vectors>
+                    <vector coordinates="0 -200 0"/>
+                    <vector coordinates="0 0 -200"/>
+                </vectors>
+                <infinite>false</infinite>
+            </orthotope>
+        </shape>
+        <from coordinates="0 0"/>
+        <to coordinates="1 1"/>
+        <resolution coordinates="256 256"/>
+        <pixelColoring>
+            <simple/>
+        </pixelColoring>
+    </screen>
+
+    <shapes>
+        <orthotope>
+            <base coordinates="0 0 -300"/>
+            <vectors>
+                <vector coordinates="100 0 0"/>
+                <vector coordinates="0 100 0"/>
+            </vectors>
+            <infinite>true</infinite>
+            <layers>
+                <solidcolored weight="1">
+                    <color>1 1 1</color>
+                </solidcolored>
+                <reflecting weight="1"/>
+            </layers>
+        </orthotope>
+
+        <ball>
+            <center coordinates="700 0 0"/>
+            <radius>200</radius>
+            <layers>
+                <solidcolored weight="1">
+                    <color>1 0 0</color>
+                </solidcolored>
+                <transparent weight="1"/>
+            </layers>
+        </ball>
+    </shapes>
+
+    <lights>
+        <ambient>
+            <brightness>-5</brightness>
+        </ambient>
+        <point>
+            <source coordinates="600 -100 500"/>
+            <brightness>1000000</brightness>
+        </point>
+    </lights>
+
+</scene>

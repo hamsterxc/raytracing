@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           xmlns="http://lonebytesoft.com"
+           targetNamespace="http://lonebytesoft.com"
+           elementFormDefault="qualified">
+
+    <!-- Scene -->
+
+    <xs:element type="sceneType" name="scene"/>
+
+    <xs:complexType name="sceneType">
+        <xs:all>
+            <xs:element type="colorType" name="colorDefault"/>
+            <xs:element type="coordinatesType" name="eye"/>
+            <xs:element type="screenType" name="screen"/>
+            <xs:element type="multipleShapesType" name="shapes" minOccurs="0"/>
+            <xs:element type="sceneLightsType" name="lights" minOccurs="0"/>
+        </xs:all>
+    </xs:complexType>
+
+    <xs:complexType name="screenType">
+        <xs:all>
+            <xs:element type="singleShapeType" name="shape"/>
+            <xs:element type="coordinatesType" name="from"/>
+            <xs:element type="coordinatesType" name="to"/>
+            <xs:element type="coordinatesType" name="resolution"/>
+            <xs:element type="screenPixelColoringType" name="pixelColoring"/>
+        </xs:all>
+    </xs:complexType>
+
+    <xs:complexType name="screenPixelColoringType">
+        <xs:choice>
+            <xs:element type="screenPixelColoringSimpleType" name="simple"/>
+            <xs:element type="screenPixelColoringSupersamplingType" name="supersampling"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="screenPixelColoringSimpleType"/>
+
+    <xs:complexType name="screenPixelColoringSupersamplingType">
+        <xs:all>
+            <xs:element type="xs:integer" name="multiplier"/>
+            <xs:element type="colorType" name="colorDefault"/>
+        </xs:all>
+    </xs:complexType>
+
+    <!-- Shapes -->
+
+    <xs:complexType name="singleShapeType">
+        <xs:choice>
+            <xs:element type="orthotopeType" name="orthotope"/>
+            <xs:element type="ballType" name="ball"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="multipleShapesType">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element type="orthotopeType" name="orthotope"/>
+            <xs:element type="ballType" name="ball"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="orthotopeType">
+        <xs:all>
+            <xs:element type="coordinatesType" name="base"/>
+            <xs:element type="vectorsType" name="vectors"/>
+            <xs:element type="xs:boolean" name="infinite"/>
+            <xs:element type="shapeLayersType" name="layers" minOccurs="0"/>
+        </xs:all>
+    </xs:complexType>
+
+    <xs:complexType name="ballType">
+        <xs:all>
+            <xs:element type="coordinatesType" name="center"/>
+            <xs:element type="xs:decimal" name="radius"/>
+            <xs:element type="shapeLayersType" name="layers" minOccurs="0"/>
+        </xs:all>
+    </xs:complexType>
+
+    <!-- Shape layers -->
+
+    <xs:complexType name="shapeLayersType">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element type="shapeLayerReflectingType" name="reflecting"/>
+            <xs:element type="shapeLayerRefractingType" name="refracting"/>
+            <xs:element type="shapeLayerSolidColoredType" name="solidcolored"/>
+            <xs:element type="shapeLayerTexturedType" name="textured"/>
+            <xs:element type="shapeLayerTransparentType" name="transparent"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="baseShapeLayerType">
+        <xs:attribute type="xs:decimal" name="weight" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="shapeLayerReflectingType">
+        <xs:complexContent>
+            <xs:extension base="baseShapeLayerType"/>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="shapeLayerRefractingType">
+        <xs:complexContent>
+            <xs:extension base="baseShapeLayerType">
+                <xs:all>
+                    <xs:element type="xs:decimal" name="coeff"/>
+                </xs:all>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="shapeLayerSolidColoredType">
+        <xs:complexContent>
+            <xs:extension base="baseShapeLayerType">
+                <xs:all>
+                    <xs:element type="colorType" name="color"/>
+                </xs:all>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="shapeLayerTexturedType">
+        <xs:complexContent>
+            <xs:extension base="baseShapeLayerType">
+                <xs:all>
+                    <xs:element type="shapeLayerTexturedTextureType" name="texture"/>
+                </xs:all>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="shapeLayerTexturedTextureType">
+        <xs:choice>
+            <xs:element type="shapeLayerTexturedTextureCheckersType" name="checkers"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="shapeLayerTexturedTextureCheckersType">
+        <xs:all>
+            <xs:element type="shapeLayerTexturedTextureCheckersMultipliersType" name="multipliers"/>
+            <xs:element type="shapeLayerTexturedTextureCheckersColorsType" name="colors"/>
+        </xs:all>
+    </xs:complexType>
+
+    <xs:complexType name="shapeLayerTexturedTextureCheckersMultipliersType">
+        <xs:sequence>
+            <xs:element type="xs:decimal" name="multiplier" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="shapeLayerTexturedTextureCheckersColorsType">
+        <xs:sequence>
+            <xs:element type="colorType" name="color" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:complexType name="shapeLayerTransparentType">
+        <xs:complexContent>
+            <xs:extension base="baseShapeLayerType"/>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <!-- Lights -->
+
+    <xs:complexType name="sceneLightsType">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element type="sceneLightAmbientType" name="ambient"/>
+            <xs:element type="sceneLightConeType" name="cone"/>
+            <xs:element type="sceneLightPointType" name="point"/>
+        </xs:choice>
+    </xs:complexType>
+
+    <xs:complexType name="sceneLightAmbientType">
+        <xs:all>
+            <xs:element type="xs:decimal" name="brightness"/>
+        </xs:all>
+    </xs:complexType>
+
+    <xs:complexType name="sceneLightConeType">
+        <xs:all>
+            <xs:element type="coordinatesType" name="source"/>
+            <xs:element type="vectorType" name="direction"/>
+            <xs:element type="xs:decimal" name="angle"/>
+            <xs:element type="xs:decimal" name="brightness"/>
+        </xs:all>
+    </xs:complexType>
+
+    <xs:complexType name="sceneLightPointType">
+        <xs:all>
+            <xs:element type="coordinatesType" name="source"/>
+            <xs:element type="xs:decimal" name="brightness"/>
+        </xs:all>
+    </xs:complexType>
+
+    <!-- Common -->
+
+    <xs:complexType name="coordinatesType">
+        <xs:attribute type="xs:string" name="coordinates" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="vectorType">
+        <xs:choice minOccurs="0" maxOccurs="unbounded">
+            <xs:element type="vectorRotateType" name="rotate"/>
+        </xs:choice>
+        <xs:attribute type="xs:string" name="coordinates" use="required"/>
+    </xs:complexType>
+
+    <xs:complexType name="vectorRotateType">
+        <xs:all>
+            <xs:element type="xs:integer" name="axisFirst"/>
+            <xs:element type="xs:integer" name="axisSecond"/>
+            <xs:element type="xs:decimal" name="angle"/>
+        </xs:all>
+    </xs:complexType>
+
+    <xs:complexType name="vectorsType">
+        <xs:sequence>
+            <xs:element type="vectorType" name="vector" minOccurs="0" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+
+    <xs:simpleType name="colorType">
+        <xs:restriction base="xs:string"/>
+    </xs:simpleType>
+
+</xs:schema>

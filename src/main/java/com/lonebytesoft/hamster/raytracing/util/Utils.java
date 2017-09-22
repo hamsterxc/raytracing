@@ -8,4 +8,12 @@ public final class Utils {
         return () -> iterator;
     }
 
+    public static <T> T cast(final Object entity, final Class<T> clazz) {
+        if(clazz.isAssignableFrom(entity.getClass())) {
+            return clazz.cast(entity);
+        } else {
+            throw new RuntimeException(entity.getClass().getSimpleName() + " is not a " + clazz.getSimpleName());
+        }
+    }
+
 }

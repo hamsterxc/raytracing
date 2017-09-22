@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<scene xmlns="http://lonebytesoft.com"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://lonebytesoft.com scene.xsd">
+
+    <colorDefault>0 0 0</colorDefault>
+    
+    <eye coordinates="0 0 0"/>
+
+    <screen>
+        <shape>
+            <orthotope>
+                <base coordinates="100 -100 -100"/>
+                <vectors>
+                    <vector coordinates="0 200 0"/>
+                    <vector coordinates="0 0 200"/>
+                </vectors>
+                <infinite>false</infinite>
+            </orthotope>
+        </shape>
+        <from coordinates="1 1"/>
+        <to coordinates="0 0"/>
+        <resolution coordinates="1024 1024"/>
+        <pixelColoring>
+            <supersampling>
+                <multiplier>3</multiplier>
+                <colorDefault>0 0 0</colorDefault>
+            </supersampling>
+        </pixelColoring>
+    </screen>
+    
+    <shapes>
+        <orthotope>
+            <base coordinates="0 0 -300"/>
+            <vectors>
+                <vector coordinates="100 0 0"/>
+                <vector coordinates="0 100 0"/>
+            </vectors>
+            <infinite>true</infinite>
+            <layers>
+                <textured weight="1">
+                    <texture>
+                        <checkers>
+                            <multipliers>
+                                <multiplier>2</multiplier>
+                                <multiplier>2</multiplier>
+                            </multipliers>
+                            <colors>
+                                <color>0 0 0</color>
+                                <color>1 1 1</color>
+                            </colors>
+                        </checkers>
+                    </texture>
+                </textured>
+            </layers>
+        </orthotope>
+
+        <ball>
+            <center coordinates="700 -200 0"/>
+            <radius>200</radius>
+            <layers>
+                <refracting weight="1">
+                    <coeff>1.5</coeff>
+                </refracting>
+            </layers>
+        </ball>
+
+        <ball>
+            <center coordinates="1400 100 100"/>
+            <radius>300</radius>
+            <layers>
+                <textured weight="1">
+                    <texture>
+                        <checkers>
+                            <multipliers>
+                                <multiplier>20</multiplier>
+                                <multiplier>20</multiplier>
+                            </multipliers>
+                            <colors>
+                                <color>1 1 1</color>
+                                <color>1 0 0</color>
+                                <color>0 1 0</color>
+                                <color>0 0 1</color>
+                                <color>1 1 0</color>
+                            </colors>
+                        </checkers>
+                    </texture>
+                </textured>
+            </layers>
+        </ball>
+    </shapes>
+    
+</scene>

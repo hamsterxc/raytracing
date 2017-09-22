@@ -1,5 +1,7 @@
 package com.lonebytesoft.hamster.raytracing.color;
 
+import java.util.Objects;
+
 public class Color {
 
     public static final Color BLACK = new Color(0, 0, 0);
@@ -40,6 +42,26 @@ public class Color {
                 ", green=" + green +
                 ", blue=" + blue +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Color color = (Color) o;
+        return
+                (ColorCalculator.colorComponentToByte(color.red) == ColorCalculator.colorComponentToByte(red)) &&
+                (ColorCalculator.colorComponentToByte(color.green) == ColorCalculator.colorComponentToByte(green)) &&
+                (ColorCalculator.colorComponentToByte(color.blue) == ColorCalculator.colorComponentToByte(blue));
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                ColorCalculator.colorComponentToByte(red),
+                ColorCalculator.colorComponentToByte(blue),
+                ColorCalculator.colorComponentToByte(green)
+        );
     }
 
 }

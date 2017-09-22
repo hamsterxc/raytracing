@@ -1,4 +1,4 @@
-package com.lonebytesoft.hamster.raytracing.format;
+package com.lonebytesoft.hamster.raytracing.format.writer;
 
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
 import com.lonebytesoft.hamster.raytracing.picture.Picture;

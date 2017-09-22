@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<scene xmlns="http://lonebytesoft.com"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://lonebytesoft.com scene.xsd">
+
+    <colorDefault>0 0 0</colorDefault>
+
+    <eye coordinates="0 0 0"/>
+
+    <screen>
+        <shape>
+            <orthotope>
+                <base coordinates="100 -100 -100"/>
+                <vectors>
+                    <vector coordinates="0 200 0"/>
+                    <vector coordinates="0 0 200"/>
+                </vectors>
+                <infinite>false</infinite>
+            </orthotope>
+        </shape>
+        <from coordinates="1 1"/>
+        <to coordinates="0 0"/>
+        <resolution coordinates="1024 1024"/>
+        <pixelColoring>
+            <supersampling>
+                <multiplier>3</multiplier>
+                <colorDefault>0 0 0</colorDefault>
+            </supersampling>
+        </pixelColoring>
+    </screen>
+
+    <shapes>
+        <orthotope>
+            <base coordinates="0 0 -300"/>
+            <vectors>
+                <vector coordinates="100 0 0"/>
+                <vector coordinates="0 100 0"/>
+            </vectors>
+            <infinite>true</infinite>
+            <layers>
+                <textured weight="1">
+                    <texture>
+                        <checkers>
+                            <multipliers>
+                                <multiplier>2</multiplier>
+                                <multiplier>2</multiplier>
+                            </multipliers>
+                            <colors>
+                                <color>0 0 0</color>
+                                <color>1 1 1</color>
+                            </colors>
+                        </checkers>
+                    </texture>
+                </textured>
+                <reflecting weight="1"/>
+            </layers>
+        </orthotope>
+
+        <ball>
+            <center coordinates="500 500 -100"/>
+            <radius>200</radius>
+            <layers>
+                <solidcolored weight="1">
+                    <color>0 1 0</color>
+                </solidcolored>
+                <reflecting weight="1"/>
+            </layers>
+        </ball>
+
+        <ball>
+            <center coordinates="500 -500 -100"/>
+            <radius>200</radius>
+            <layers>
+                <solidcolored weight="1">
+                    <color>0 0 1</color>
+                </solidcolored>
+                <reflecting weight="1"/>
+            </layers>
+        </ball>
+        
+        <orthotope>
+            <base coordinates="600 -200 200"/>
+            <vectors>
+                <vector coordinates="400 0 0">
+                    <rotate>
+                        <axisFirst>1</axisFirst>
+                        <axisSecond>2</axisSecond>
+                        <angle>0.5236</angle>
+                    </rotate>
+                    <rotate>
+                        <axisFirst>0</axisFirst>
+                        <axisSecond>2</axisSecond>
+                        <angle>0.5236</angle>
+                    </rotate>
+                    <rotate>
+                        <axisFirst>0</axisFirst>
+                        <axisSecond>1</axisSecond>
+                        <angle>0.7854</angle>
+                    </rotate>
+                </vector>
+                <vector coordinates="0 400 0">
+                    <rotate>
+                        <axisFirst>1</axisFirst>
+                        <axisSecond>2</axisSecond>
+                        <angle>0.5236</angle>
+                    </rotate>
+                    <rotate>
+                        <axisFirst>0</axisFirst>
+                        <axisSecond>2</axisSecond>
+                        <angle>0.5236</angle>
+                    </rotate>
+                    <rotate>
+                        <axisFirst>0</axisFirst>
+                        <axisSecond>1</axisSecond>
+                        <angle>0.7854</angle>
+                    </rotate>
+                </vector>
+                <vector coordinates="0 0 400">
+                    <rotate>
+                        <axisFirst>1</axisFirst>
+                        <axisSecond>2</axisSecond>
+                        <angle>0.5236</angle>
+                    </rotate>
+                    <rotate>
+                        <axisFirst>0</axisFirst>
+                        <axisSecond>2</axisSecond>
+                        <angle>0.5236</angle>
+                    </rotate>
+                    <rotate>
+                        <axisFirst>0</axisFirst>
+                        <axisSecond>1</axisSecond>
+                        <angle>0.7854</angle>
+                    </rotate>
+                </vector>
+            </vectors>
+            <infinite>false</infinite>
+            <layers>
+                <textured weight="1">
+                    <texture>
+                        <checkers>
+                            <multipliers>
+                                <multiplier>1</multiplier>
+                                <multiplier>0</multiplier>
+                            </multipliers>
+                            <colors>
+                                <color>0 1 1</color>
+                                <color>1 0 0</color>
+                                <color>0 1 0</color>
+                                <color>0 0 1</color>
+                                <color>1 1 0</color>
+                                <color>1 0 1</color>
+                            </colors>
+                        </checkers>
+                    </texture>
+                </textured>
+                <reflecting weight="1"/>
+            </layers>
+        </orthotope>
+    </shapes>
+
+    <lights>
+        <point>
+            <source coordinates="600 0 400"/>
+            <brightness>500000</brightness>
+        </point>
+    </lights>
+
+</scene>

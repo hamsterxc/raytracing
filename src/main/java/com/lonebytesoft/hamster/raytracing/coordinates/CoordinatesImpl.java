@@ -1,7 +1,6 @@
 package com.lonebytesoft.hamster.raytracing.coordinates;
 
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.Objects;
 
 abstract class CoordinatesImpl<T extends Coordinates<T>> implements Coordinates<T> {
@@ -28,23 +27,6 @@ abstract class CoordinatesImpl<T extends Coordinates<T>> implements Coordinates<
         } else {
             throw new IllegalArgumentException("Dimension index out of bounds: " + dimension);
         }
-    }
-
-    @Override
-    public Iterator<Double> iterator() {
-        return new Iterator<Double>() {
-            private int position = 0;
-
-            @Override
-            public boolean hasNext() {
-                return position < coordinates.length;
-            }
-
-            @Override
-            public Double next() {
-                return coordinates[position++];
-            }
-        };
     }
 
     protected final void assertDimensionality(final double... coordinates) {

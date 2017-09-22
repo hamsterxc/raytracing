@@ -1,7 +1,9 @@
-package com.lonebytesoft.hamster.raytracing.format;
+package com.lonebytesoft.hamster.raytracing.format.writer;
 
 import com.lonebytesoft.hamster.raytracing.color.Color;
+import com.lonebytesoft.hamster.raytracing.color.ColorCalculator;
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates2d;
+import com.lonebytesoft.hamster.raytracing.format.BmpFormatCommons;
 import com.lonebytesoft.hamster.raytracing.picture.Picture;
 import com.lonebytesoft.hamster.raytracing.shape.generic.orthotope.Orthotope;
 
@@ -10,12 +12,6 @@ import java.io.OutputStream;
 
 public class BmpWriter implements PictureWriter<Coordinates2d> {
 
-    private static final int BYTES_PER_PIXEL = 3;
-    private static final int BYTES_ROW_GRANULARITY = 4;
-
-    private static final int HEADER_SIZE_BMP = 14;
-    private static final int HEADER_SIZE_DIB = 40;
-
     // https://en.wikipedia.org/wiki/BMP_file_format
     @Override
     public void write(Picture<Coordinates2d> picture, OutputStream outputStream) throws IOException {
@@ -23,48 +19,43 @@ public class BmpWriter implements PictureWriter<Coordinates2d> {
         final int width = (int) Math.round(bounds.getVectors().get(0).getX() + 1);
         final int height = (int) Math.round(bounds.getVectors().get(1).getY() + 1);
 
-        final int paddingExtra = (width * BYTES_PER_PIXEL) % BYTES_ROW_GRANULARITY;
-        final int padding = paddingExtra == 0 ? 0 : BYTES_ROW_GRANULARITY - paddingExtra;
-
         // BMP header
         writeOne(0x42, outputStream);
         writeOne(0x4D, outputStream);
-        writeFour(HEADER_SIZE_BMP + HEADER_SIZE_DIB + height * (width * BYTES_PER_PIXEL + padding), outputStream);
+        writeFour(BmpFormatCommons.calculateFileSize(width, height), outputStream);
         writeTwo(0, outputStream);
         writeTwo(0, outputStream);
-        writeFour(HEADER_SIZE_BMP + HEADER_SIZE_DIB, outputStream);
+        writeFour(BmpFormatCommons.HEADER_SIZE_BMP + BmpFormatCommons.HEADER_SIZE_DIB, outputStream);
 
         // DIB header
-        writeFour(HEADER_SIZE_DIB, outputStream);
+        writeFour(BmpFormatCommons.HEADER_SIZE_DIB, outputStream);
         writeFour(width, outputStream);
         writeFour(height, outputStream);
         writeTwo(1, outputStream);
-        writeTwo(8 * BYTES_PER_PIXEL, outputStream);
+        writeTwo(8 * BmpFormatCommons.BYTES_PER_PIXEL, outputStream);
         writeFour(0, outputStream);
-        writeFour(height * (width * BYTES_PER_PIXEL + padding), outputStream);
+        writeFour(BmpFormatCommons.calculateBitmapDataSize(width, height), outputStream);
         writeFour(2835, outputStream);
         writeFour(2835, outputStream);
         writeFour(0, outputStream);
         writeFour(0, outputStream);
 
         // Bitmap data
+        final int padding = BmpFormatCommons.calculatePadding(width);
         for(int y = height - 1; y >= 0; y--) {
             for(int x = 0; x < width; x++) {
                 final Color color = picture.getPixelColor(
                         new Coordinates2d(x + bounds.getBase().getX(), y + bounds.getBase().getY()));
                 if(color == null) {
-                    for(int i = 0; i < BYTES_PER_PIXEL; i++) {
-                        writeOne(0, outputStream);
-                    }
+                    writeZeroes(BmpFormatCommons.BYTES_PER_PIXEL, outputStream);
                 } else {
-                    writeOne(calculateColorByte(color.getBlue()), outputStream);
-                    writeOne(calculateColorByte(color.getGreen()), outputStream);
-                    writeOne(calculateColorByte(color.getRed()), outputStream);
+                    writeOne(ColorCalculator.colorComponentToByte(color.getBlue()), outputStream);
+                    writeOne(ColorCalculator.colorComponentToByte(color.getGreen()), outputStream);
+                    writeOne(ColorCalculator.colorComponentToByte(color.getRed()), outputStream);
+                    writeZeroes(BmpFormatCommons.BYTES_PER_PIXEL - 3, outputStream);
                 }
             }
-            for(int i = 0; i < padding; i++) {
-                writeOne(0, outputStream);
-            }
+            writeZeroes(padding, outputStream);
         }
 
         outputStream.flush();
@@ -86,14 +77,9 @@ public class BmpWriter implements PictureWriter<Coordinates2d> {
         outputStream.write(value & 0xFF);
     }
 
-    private int calculateColorByte(final double color) {
-        final int colorByte = (int)Math.round(color * 256);
-        if(colorByte < 0) {
-            return 0;
-        } else if(colorByte > 0xFF) {
-            return 0xFF;
-        } else {
-            return colorByte;
+    private void writeZeroes(final int count, final OutputStream outputStream) throws IOException {
+        for(int i = 0; i < count; i++) {
+            writeOne(0, outputStream);
         }
     }
 

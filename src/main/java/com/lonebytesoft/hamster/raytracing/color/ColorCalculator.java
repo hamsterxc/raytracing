@@ -48,4 +48,19 @@ public final class ColorCalculator {
         }
     }
 
+    public static int colorComponentToByte(final double component) {
+        final int componentByte = (int) Math.round(component * 256);
+        if(componentByte < 0) {
+            return 0;
+        } else if(componentByte > 255) {
+            return 255;
+        } else {
+            return componentByte;
+        }
+    }
+
+    public static double colorByteToComponent(final int colorByte) {
+        return colorByte / 255.0;
+    }
+
 }

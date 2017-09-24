@@ -1,9 +1,10 @@
 package com.lonebytesoft.hamster.raytracing.app.testrunner;
 
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,6 +21,7 @@ final class ToolOperations {
     private static final boolean IS_LINUX = OS.startsWith("Linux");
 
     private static final String MAVEN_OUTPUT_PATH = "target";
+    private static final String MAVEN_ARTIFACT_NAME = "raytracing-1.0-SNAPSHOT.jar";
 
     // git log -n 1 --pretty=format:"%H"
     public static String gitGetCommitHash(final String project, final OutputStream log) throws IOException {
@@ -55,24 +57,32 @@ final class ToolOperations {
         return path;
     }
 
-    private static String obtainRandomString(final int length) {
-        final StringBuilder stringBuilder = new StringBuilder();
-        for(int i = 0; i < length; i++) {
-            final int index = (int) Math.floor(Math.random() * RANDOM_ALPHABET.length);
-            stringBuilder.append(RANDOM_ALPHABET[index]);
-        }
-        return stringBuilder.toString();
-    }
-
-    // mvn -f ${project}/pom.xml clean package dependency:copy-dependencies -DoutputDirectory=target
+    // mvn -f ${project}/pom.xml clean package dependency:build-classpath -Dmdep.outputFile="mdep"${rand}
     public static String mavenBuild(final String project, final OutputStream log) throws IOException {
+        final String dependenciesOutputFile = "mdep" + obtainRandomString(8);
+        FileOperations.delete(dependenciesOutputFile);
+
         maven(Arrays.asList(
                 "-f", mavenGetPom(project),
                 "clean",
                 "package",
-                "dependency:copy-dependencies", "-DoutputDirectory=" + MAVEN_OUTPUT_PATH
+                "dependency:build-classpath", "-Dmdep.outputFile=" + dependenciesOutputFile
         ), null, log);
-        return Paths.get(project, MAVEN_OUTPUT_PATH).toString();
+
+        final StringBuilder dependenciesBuilder = new StringBuilder();
+        try(final InputStream inputStream = new BufferedInputStream(new FileInputStream(dependenciesOutputFile))) {
+            int read;
+            while((read = inputStream.read()) != -1) {
+                dependenciesBuilder.append((char) (read & 0xFF));
+            }
+        }
+        final String dependencies = dependenciesBuilder.toString();
+        FileOperations.delete(dependenciesOutputFile);
+
+        return
+                Paths.get(project, MAVEN_OUTPUT_PATH, MAVEN_ARTIFACT_NAME).toString()
+                + System.getProperty("path.separator")
+                + dependencies;
     }
 
     private static void maven(final List<String> command, final String workingPath, final OutputStream log) throws IOException {
@@ -95,19 +105,24 @@ final class ToolOperations {
 
     public static void java(final String classPath, final String className, final Map<String, String> parameters,
                             final String workingPath, final OutputStream log) throws IOException {
-        final String classpathString = Files.isDirectory(Paths.get(classPath))
-                ? '"' + classPath + FileSystems.getDefault().getSeparator() + "*\""
-                : classPath;
-
         final List<String> command = new ArrayList<>();
         command.add("java");
         command.add("-cp");
-        command.add(classpathString);
+        command.add(classPath);
         parameters.forEach((key, value) -> command.add("-D" + key + "=" + value));
         command.add(className);
 
         final int exitCode = FileOperations.runProcess(command, workingPath, log);
         FileOperations.checkExitCode(exitCode, "java run '" + className + "' failed");
+    }
+
+    private static String obtainRandomString(final int length) {
+        final StringBuilder stringBuilder = new StringBuilder();
+        for(int i = 0; i < length; i++) {
+            final int index = (int) Math.floor(Math.random() * RANDOM_ALPHABET.length);
+            stringBuilder.append(RANDOM_ALPHABET[index]);
+        }
+        return stringBuilder.toString();
     }
 
     private static class StringBuilderWrapper extends OutputStream {

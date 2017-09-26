@@ -1,4 +1,4 @@
-package com.lonebytesoft.hamster.raytracing.app.testrunner;
+package com.lonebytesoft.hamster.raytracing.app.helper;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -12,7 +12,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
-final class FileOperations {
+public final class FileOperations {
+
+    public static final String CURRENT_DIRECTORY = ".";
 
     public static void delete(final String name) throws IOException {
         final Path path = Paths.get(name);

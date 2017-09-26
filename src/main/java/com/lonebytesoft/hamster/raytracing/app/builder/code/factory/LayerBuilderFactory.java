@@ -1,6 +1,5 @@
 package com.lonebytesoft.hamster.raytracing.app.builder.code.factory;
 
-import com.lonebytesoft.hamster.raytracing.app.builder.code.Commit;
 import com.lonebytesoft.hamster.raytracing.app.builder.code.FeatureNotImplementedException;
 import com.lonebytesoft.hamster.raytracing.app.builder.code.builder.CoordinatesBuilder;
 import com.lonebytesoft.hamster.raytracing.app.builder.code.builder.ExpressionBuilder;
@@ -9,24 +8,29 @@ import com.lonebytesoft.hamster.raytracing.app.builder.code.definition.LayerExte
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.layer.definition.LayerType;
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.layer.definition.texture.TextureType;
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.layer.definition.texture.TexturedLayerDefinition;
+import com.lonebytesoft.hamster.raytracing.app.helper.commit.Commit;
+import com.lonebytesoft.hamster.raytracing.app.helper.commit.CommitManager;
 import com.lonebytesoft.hamster.raytracing.color.Color;
 
 public class LayerBuilderFactory implements BuilderFactory<ExpressionBuilder<LayerExtendedDefinition>> {
 
+    private final CommitManager commitManager;
     private final ExpressionBuilder<Color> colorBuilder;
     private final CoordinatesBuilder coordinatesBuilder;
 
-    public LayerBuilderFactory(final ExpressionBuilder<Color> colorBuilder,
+    public LayerBuilderFactory(final CommitManager commitManager,
+                               final ExpressionBuilder<Color> colorBuilder,
                                final CoordinatesBuilder coordinatesBuilder) {
+        this.commitManager = commitManager;
         this.colorBuilder = colorBuilder;
         this.coordinatesBuilder = coordinatesBuilder;
     }
 
     @Override
-    public ExpressionBuilder<LayerExtendedDefinition> build(Commit commit) {
-        if(commit.isOlder(Commit.ADDED_EXAMPLE)) {
+    public ExpressionBuilder<LayerExtendedDefinition> build(String commitHash) {
+        if(commitManager.isOlder(commitHash, Commit.ADDED_EXAMPLE.getHash())) {
             return new PreCheckersLayerBuilder(colorBuilder, coordinatesBuilder);
-        } else if(commit.isOlder(Commit.ADDED_REFRACTING)) {
+        } else if(commitManager.isOlder(commitHash, Commit.ADDED_REFRACTING.getHash())) {
             return new PreRefractingLayerBuilder(colorBuilder, coordinatesBuilder);
         } else {
             return new LayerBuilder(colorBuilder, coordinatesBuilder);

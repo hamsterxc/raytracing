@@ -1,4 +1,4 @@
-package com.lonebytesoft.hamster.raytracing.app.testrunner;
+package com.lonebytesoft.hamster.raytracing.app.helper;
 
 import java.io.BufferedInputStream;
 import java.io.FileInputStream;
@@ -11,7 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-final class ToolOperations {
+public final class ToolOperations {
 
     private static final char[] RANDOM_ALPHABET =
             "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".toCharArray();
@@ -29,10 +29,20 @@ final class ToolOperations {
         final int exitCodeClone = FileOperations.runProcess(Arrays.asList(
                 "git", "log",
                 "-n", "1",
-                "--pretty=format:\"%H\""
+                "--pretty=format:%H"
         ), project, outputStream);
         return FileOperations.checkExitCode(exitCodeClone, "latest commit hash (git log) failed",
                 outputStream.toString(), log);
+    }
+
+    // git log --pretty=format:"%H %P"
+    public static String gitGetLog(final String project, final OutputStream log) throws IOException {
+        final OutputStream outputStream = new StringBuilderWrapper();
+        final int exitCodeClone = FileOperations.runProcess(Arrays.asList(
+                "git", "log",
+                "--pretty=format:%H %P"
+        ), project, outputStream);
+        return FileOperations.checkExitCode(exitCodeClone, "git log failed", outputStream.toString(), log);
     }
 
     // git clone . ${name}"."${rand} && cd ${name}"."${rand} && git reset --hard ${qualifier}
@@ -42,7 +52,7 @@ final class ToolOperations {
 
         final int exitCodeClone = FileOperations.runProcess(Arrays.asList(
                 "git", "clone",
-                ".",
+                FileOperations.CURRENT_DIRECTORY,
                 path
         ), null, log);
         FileOperations.checkExitCode(exitCodeClone, "git clone failed");
@@ -59,14 +69,15 @@ final class ToolOperations {
 
     // mvn -f ${project}/pom.xml clean package dependency:build-classpath -Dmdep.outputFile="mdep"${rand}
     public static String mavenBuild(final String project, final OutputStream log) throws IOException {
-        final String dependenciesOutputFile = "mdep" + obtainRandomString(8);
+        final String dependenciesOutputFileName = "mdep" + obtainRandomString(8);
+        final String dependenciesOutputFile = Paths.get(project, dependenciesOutputFileName).toString();
         FileOperations.delete(dependenciesOutputFile);
 
         maven(Arrays.asList(
                 "-f", mavenGetPom(project),
                 "clean",
                 "package",
-                "dependency:build-classpath", "-Dmdep.outputFile=" + dependenciesOutputFile
+                "dependency:build-classpath", "-Dmdep.outputFile=" + dependenciesOutputFileName
         ), null, log);
 
         final StringBuilder dependenciesBuilder = new StringBuilder();

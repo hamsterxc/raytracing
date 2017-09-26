@@ -1,6 +1,5 @@
 package com.lonebytesoft.hamster.raytracing.app.testrunner;
 
-import com.lonebytesoft.hamster.raytracing.app.builder.code.Commit;
 import com.lonebytesoft.hamster.raytracing.app.builder.code.FeatureNotImplementedException;
 import com.lonebytesoft.hamster.raytracing.app.builder.code.builder.ExpressionBuilder;
 import com.lonebytesoft.hamster.raytracing.app.builder.code.definition.ClassFileDefinition;
@@ -10,6 +9,9 @@ import com.lonebytesoft.hamster.raytracing.app.builder.parser.factory.XmlParserF
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.scene.definition.SceneDefinition;
 import com.lonebytesoft.hamster.raytracing.app.builder.picture.builder.PictureBuilder;
 import com.lonebytesoft.hamster.raytracing.app.builder.picture.factory.PictureBuilderFactory;
+import com.lonebytesoft.hamster.raytracing.app.helper.FileOperations;
+import com.lonebytesoft.hamster.raytracing.app.helper.ToolOperations;
+import com.lonebytesoft.hamster.raytracing.app.helper.commit.CommitManager;
 import com.lonebytesoft.hamster.raytracing.color.Color;
 import com.lonebytesoft.hamster.raytracing.color.ColorCalculator;
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
@@ -75,7 +77,10 @@ public class TestRunner {
                 final OutputStream logStreamJava = FileOperations.obtainOutputStream(logJava);
         ) {
             basePath = isEmpty(base) ? null : gitClone(base, "base", logStreamGit, logStreamOwn);
-            targetPath = isEmpty(target) ? "." : gitClone(target, "target", logStreamGit, logStreamOwn);
+            targetPath = isEmpty(target) ? FileOperations.CURRENT_DIRECTORY : gitClone(target, "target", logStreamGit, logStreamOwn);
+
+            final String history = ToolOperations.gitGetLog(FileOperations.CURRENT_DIRECTORY, logStreamGit);
+            final CommitManager commitManager = new CommitManager(history);
 
             final String baseCommitHash = isEmpty(base) ? null : ToolOperations.gitGetCommitHash(basePath, logStreamGit);
             final String targetCommitHash = isEmpty(target) ? null : ToolOperations.gitGetCommitHash(targetPath, logStreamGit);
@@ -83,6 +88,7 @@ public class TestRunner {
             final boolean isTargetInPlace = isEmpty(target) && isNoRebuild;
 
             final XmlParser xmlParser = new XmlParserFactory().obtainXmlParser();
+            final CodeBuilderFactory codeBuilderFactory = new CodeBuilderFactory(commitManager);
             final Map<String, SceneDefinition> sceneDefinitions = new HashMap<>();
             final Map<String, String> codeBase = new HashMap<>();
             final Map<String, String> codeTarget = new HashMap<>();
@@ -99,12 +105,12 @@ public class TestRunner {
 
                 if(!isEmpty(base)) {
                     final String code = buildCode("base", definition,
-                            baseCommitHash, sceneDefinition, sceneName, pictureName);
+                            codeBuilderFactory, baseCommitHash, sceneDefinition, sceneName, pictureName);
                     codeBase.put(definition, code);
                 }
                 if(!isTargetInPlace) {
                     final String code = buildCode("target", definition,
-                            targetCommitHash, sceneDefinition, sceneName, pictureName);
+                            codeBuilderFactory, targetCommitHash, sceneDefinition, sceneName, pictureName);
                     codeTarget.put(definition, code);
                 }
             }
@@ -219,22 +225,16 @@ public class TestRunner {
         return xmlParser.parse(document);
     }
 
-    private String buildCode(final Commit commit, final SceneDefinition sceneDefinition,
-                             final String name, final String picture) {
-        final ExpressionBuilder<ClassFileDefinition> classFileBuilder = new CodeBuilderFactory().build(commit);
-
-        final ClassFileDefinition classFileDefinition = new ClassFileDefinition(sceneDefinition, CODE_PACKAGE, name, picture);
-        return classFileBuilder.build(classFileDefinition);
-    }
-
     private String buildCode(final String type, final String definition,
-                             final String commitHash, final SceneDefinition sceneDefinition,
+                             final CodeBuilderFactory codeBuilderFactory, final String commitHash,
+                             final SceneDefinition sceneDefinition,
                              final String name, final String picture) {
-        final Commit commit = Commit.find(commitHash);
         try {
-            return buildCode(commit, sceneDefinition, name, picture);
+            final ExpressionBuilder<ClassFileDefinition> classFileBuilder = codeBuilderFactory.build(commitHash);
+            final ClassFileDefinition classFileDefinition = new ClassFileDefinition(sceneDefinition, CODE_PACKAGE, name, picture);
+            return classFileBuilder.build(classFileDefinition);
         } catch (FeatureNotImplementedException e) {
-            throw new RuntimeException("Feature not implemented in commit " + commit + " for " + type
+            throw new RuntimeException("Feature not implemented in commit '" + commitHash + "' for " + type
                     + ", definition '" + definition + "': " + e.getFeature(), e);
         }
     }

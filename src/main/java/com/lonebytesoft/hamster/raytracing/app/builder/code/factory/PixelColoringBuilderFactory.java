@@ -1,28 +1,32 @@
 package com.lonebytesoft.hamster.raytracing.app.builder.code.factory;
 
-import com.lonebytesoft.hamster.raytracing.app.builder.code.Commit;
 import com.lonebytesoft.hamster.raytracing.app.builder.code.builder.CoordinatesBuilder;
 import com.lonebytesoft.hamster.raytracing.app.builder.code.builder.ExpressionBuilder;
 import com.lonebytesoft.hamster.raytracing.app.builder.code.builder.PixelColoringBuilder;
 import com.lonebytesoft.hamster.raytracing.app.builder.code.definition.PixelColoringExtendedDefinition;
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.scene.definition.pixelcolor.PixelColoringDefinition;
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.scene.definition.pixelcolor.SupersamplingPixelColoringDefinition;
+import com.lonebytesoft.hamster.raytracing.app.helper.commit.Commit;
+import com.lonebytesoft.hamster.raytracing.app.helper.commit.CommitManager;
 import com.lonebytesoft.hamster.raytracing.color.Color;
 
 public class PixelColoringBuilderFactory implements BuilderFactory<ExpressionBuilder<PixelColoringExtendedDefinition>> {
 
+    private final CommitManager commitManager;
     private final ExpressionBuilder<Color> colorBuilder;
     private final CoordinatesBuilder coordinatesBuilder;
 
-    public PixelColoringBuilderFactory(final ExpressionBuilder<Color> colorBuilder,
+    public PixelColoringBuilderFactory(final CommitManager commitManager,
+                                       final ExpressionBuilder<Color> colorBuilder,
                                        final CoordinatesBuilder coordinatesBuilder) {
+        this.commitManager = commitManager;
         this.colorBuilder = colorBuilder;
         this.coordinatesBuilder = coordinatesBuilder;
     }
 
     @Override
-    public ExpressionBuilder<PixelColoringExtendedDefinition> build(Commit commit) {
-        if(commit.isOlder(Commit.REFACTORED_PIXEL_COLORING)) {
+    public ExpressionBuilder<PixelColoringExtendedDefinition> build(String commitHash) {
+        if(commitManager.isOlder(commitHash, Commit.REFACTORED_PIXEL_COLORING.getHash())) {
             return new PreRefactoringPixelColoringBuilder(colorBuilder, coordinatesBuilder);
         } else {
             return new PixelColoringBuilder(colorBuilder, coordinatesBuilder);

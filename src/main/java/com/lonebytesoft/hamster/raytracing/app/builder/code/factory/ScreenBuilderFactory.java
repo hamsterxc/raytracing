@@ -1,6 +1,5 @@
 package com.lonebytesoft.hamster.raytracing.app.builder.code.factory;
 
-import com.lonebytesoft.hamster.raytracing.app.builder.code.Commit;
 import com.lonebytesoft.hamster.raytracing.app.builder.code.FeatureNotImplementedException;
 import com.lonebytesoft.hamster.raytracing.app.builder.code.builder.CoordinatesBuilder;
 import com.lonebytesoft.hamster.raytracing.app.builder.code.builder.ExpressionBuilder;
@@ -11,18 +10,23 @@ import com.lonebytesoft.hamster.raytracing.app.builder.code.definition.ScreenExt
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.scene.definition.ScreenDefinition;
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.shape.definition.ShapeDefinition;
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.shape.definition.ShapeType;
+import com.lonebytesoft.hamster.raytracing.app.helper.commit.Commit;
+import com.lonebytesoft.hamster.raytracing.app.helper.commit.CommitManager;
 
 public class ScreenBuilderFactory implements BuilderFactory<StatementBuilder<ScreenExtendedDefinition>> {
 
+    private final CommitManager commitManager;
     private final ExpressionBuilder<String> variableNameBuilder;
     private final ExpressionBuilder<PixelColoringExtendedDefinition> pixelColoringBuilder;
     private final CoordinatesBuilder coordinatesBuilder;
     private final StatementBuilder<ShapeDefinition> bareShapeBuilder;
 
-    public ScreenBuilderFactory(final ExpressionBuilder<String> variableNameBuilder,
+    public ScreenBuilderFactory(final CommitManager commitManager,
+                                final ExpressionBuilder<String> variableNameBuilder,
                                 final ExpressionBuilder<PixelColoringExtendedDefinition> pixelColoringBuilder,
                                 final CoordinatesBuilder coordinatesBuilder,
                                 final StatementBuilder<ShapeDefinition> bareShapeBuilder) {
+        this.commitManager = commitManager;
         this.variableNameBuilder = variableNameBuilder;
         this.pixelColoringBuilder = pixelColoringBuilder;
         this.coordinatesBuilder = coordinatesBuilder;
@@ -30,8 +34,8 @@ public class ScreenBuilderFactory implements BuilderFactory<StatementBuilder<Scr
     }
 
     @Override
-    public StatementBuilder<ScreenExtendedDefinition> build(Commit commit) {
-        if(commit.isOlder(Commit.ADDED_SURFACED_SCREEN)) {
+    public StatementBuilder<ScreenExtendedDefinition> build(String commitHash) {
+        if(commitManager.isOlder(commitHash, Commit.ADDED_SURFACED_SCREEN.getHash())) {
             return new PreSurfacedScreenBuilder(variableNameBuilder, pixelColoringBuilder, coordinatesBuilder, bareShapeBuilder);
         } else {
             return new ScreenBuilder(variableNameBuilder, pixelColoringBuilder, coordinatesBuilder, bareShapeBuilder);

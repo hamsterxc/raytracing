@@ -1,6 +1,5 @@
 package com.lonebytesoft.hamster.raytracing.app.builder.code.factory;
 
-import com.lonebytesoft.hamster.raytracing.app.builder.code.Commit;
 import com.lonebytesoft.hamster.raytracing.app.builder.code.FeatureNotImplementedException;
 import com.lonebytesoft.hamster.raytracing.app.builder.code.builder.CoordinatesBuilder;
 import com.lonebytesoft.hamster.raytracing.app.builder.code.builder.ExpressionBuilder;
@@ -9,24 +8,29 @@ import com.lonebytesoft.hamster.raytracing.app.builder.code.builder.StatementBui
 import com.lonebytesoft.hamster.raytracing.app.builder.code.definition.LightExtendedDefinition;
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.common.definition.VectorDefinition;
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.light.definition.LightType;
+import com.lonebytesoft.hamster.raytracing.app.helper.commit.Commit;
+import com.lonebytesoft.hamster.raytracing.app.helper.commit.CommitManager;
 
 public class LightBuilderFactory implements BuilderFactory<StatementBuilder<LightExtendedDefinition>> {
 
+    private final CommitManager commitManager;
     private final ExpressionBuilder<String> variableNameBuilder;
     private final CoordinatesBuilder coordinatesBuilder;
     private final StatementBuilder<VectorDefinition> vectorBuilder;
 
-    public LightBuilderFactory(final ExpressionBuilder<String> variableNameBuilder,
+    public LightBuilderFactory(final CommitManager commitManager,
+                               final ExpressionBuilder<String> variableNameBuilder,
                                final CoordinatesBuilder coordinatesBuilder,
                                final StatementBuilder<VectorDefinition> vectorBuilder) {
+        this.commitManager = commitManager;
         this.variableNameBuilder = variableNameBuilder;
         this.coordinatesBuilder = coordinatesBuilder;
         this.vectorBuilder = vectorBuilder;
     }
 
     @Override
-    public StatementBuilder<LightExtendedDefinition> build(Commit commit) {
-        if(commit.isOlder(Commit.ADDED_CONE_LIGHT)) {
+    public StatementBuilder<LightExtendedDefinition> build(String commitHash) {
+        if(commitManager.isOlder(commitHash, Commit.ADDED_CONE_LIGHT.getHash())) {
             return new PreConeLightBuilder(variableNameBuilder, coordinatesBuilder, vectorBuilder);
         } else {
             return new LightBuilder(variableNameBuilder, coordinatesBuilder, vectorBuilder);

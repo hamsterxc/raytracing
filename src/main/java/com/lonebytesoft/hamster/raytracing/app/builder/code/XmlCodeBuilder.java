@@ -6,6 +6,9 @@ import com.lonebytesoft.hamster.raytracing.app.builder.code.factory.CodeBuilderF
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.XmlParser;
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.factory.XmlParserFactory;
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.scene.definition.SceneDefinition;
+import com.lonebytesoft.hamster.raytracing.app.helper.FileOperations;
+import com.lonebytesoft.hamster.raytracing.app.helper.ToolOperations;
+import com.lonebytesoft.hamster.raytracing.app.helper.commit.CommitManager;
 import org.w3c.dom.Document;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -21,7 +24,8 @@ public class XmlCodeBuilder {
         final String pictureName = System.getProperty("raytracing.xmlcodebuilder.picture", "picture.bmp");
         final String commitHash = System.getProperty("raytracing.xmlcodebuilder.commithash", null);
 
-        final Commit commit = Commit.find(commitHash);
+        final String log = ToolOperations.gitGetLog(FileOperations.CURRENT_DIRECTORY, System.err);
+        final CommitManager commitManager = new CommitManager(log);
 
         if(inputFileName == null) {
             throw new RuntimeException("Input file not specified");
@@ -35,7 +39,7 @@ public class XmlCodeBuilder {
         final XmlParser xmlParser = new XmlParserFactory().obtainXmlParser();
         final SceneDefinition sceneDefinition = xmlParser.parse(document);
 
-        final ExpressionBuilder<ClassFileDefinition> classFileBuilder = new CodeBuilderFactory().build(commit);
+        final ExpressionBuilder<ClassFileDefinition> classFileBuilder = new CodeBuilderFactory(commitManager).build(commitHash);
         final ClassFileDefinition classFileDefinition = new ClassFileDefinition(
                 sceneDefinition, packageName, className, pictureName);
         final String code = classFileBuilder.build(classFileDefinition);

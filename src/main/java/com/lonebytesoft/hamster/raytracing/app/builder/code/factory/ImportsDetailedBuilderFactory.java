@@ -1,25 +1,32 @@
 package com.lonebytesoft.hamster.raytracing.app.builder.code.factory;
 
-import com.lonebytesoft.hamster.raytracing.app.builder.code.Commit;
 import com.lonebytesoft.hamster.raytracing.app.builder.code.builder.ExpressionBuilder;
 import com.lonebytesoft.hamster.raytracing.app.builder.code.builder.ImportsDetailedBuilder;
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.scene.definition.SceneDefinition;
+import com.lonebytesoft.hamster.raytracing.app.helper.commit.Commit;
+import com.lonebytesoft.hamster.raytracing.app.helper.commit.CommitManager;
 
 public class ImportsDetailedBuilderFactory implements BuilderFactory<ExpressionBuilder<SceneDefinition>> {
 
+    private final CommitManager commitManager;
+
+    public ImportsDetailedBuilderFactory(final CommitManager commitManager) {
+        this.commitManager = commitManager;
+    }
+
     @Override
-    public ExpressionBuilder<SceneDefinition> build(Commit commit) {
-        if(commit.isOlder(Commit.REWORKED_PICTURE_BUILDING)) {
+    public ExpressionBuilder<SceneDefinition> build(String commitHash) {
+        if(commitManager.isOlder(commitHash, Commit.REWORKED_PICTURE_BUILDING.getHash())) {
             return new PreReworkPictureBuildingImportsDetailedBuilder();
-        } else if(commit.isOlder(Commit.ADDED_EXAMPLE)) {
+        } else if(commitManager.isOlder(commitHash, Commit.ADDED_EXAMPLE.getHash())) {
             return new PreCheckersTextureImportsDetailedBuilder();
-        } else if(commit.isOlder(Commit.ADDED_REFRACTING)) {
+        } else if(commitManager.isOlder(commitHash, Commit.ADDED_REFRACTING.getHash())) {
             return new PreRefractingImportsDetailedBuilder();
-        } else if(commit.isOlder(Commit.ADDED_CONE_LIGHT)) {
+        } else if(commitManager.isOlder(commitHash, Commit.ADDED_CONE_LIGHT.getHash())) {
             return new PreConeLightImportsDetailedBuilder();
-        } else if(commit.isOlder(Commit.ADDED_SURFACED_SCREEN)) {
+        } else if(commitManager.isOlder(commitHash, Commit.ADDED_SURFACED_SCREEN.getHash())) {
             return new PreScreenSurfacedImportsDetailedBuilder();
-        } else if(commit.isOlder(Commit.REGRESSION_PERFORMANCE_TESTS)) {
+        } else if(commitManager.isOlder(commitHash, Commit.REGRESSION_PERFORMANCE_TESTS.getHash())) {
             return new PreTestsImportsDetailedBuilder();
         } else {
             return new ImportsDetailedBuilder();

@@ -123,10 +123,10 @@ public class Ball<T extends Coordinates<T>>
         double sinuses = radius;
         for(int i = 0; i < dimensions - 1; i++) {
             final double phi = coordinates.getCoordinate(i) * Math.PI;
-            coords[i] = sinuses * Math.cos(phi);
+            coords[i] = sinuses * Math.cos(phi) + center.getCoordinate(i);
             sinuses *= Math.sin(phi);
         }
-        coords[dimensions - 1] = sinuses;
+        coords[dimensions - 1] = sinuses + center.getCoordinate(dimensions - 1);
 
         return center.obtain(coords);
     }

@@ -12,7 +12,6 @@ import com.lonebytesoft.hamster.raytracing.app.helper.commit.Commit;
 import com.lonebytesoft.hamster.raytracing.app.helper.commit.CommitManager;
 import com.lonebytesoft.hamster.raytracing.color.Color;
 
-// todo: working copy changes
 public class BeholderBuilderFactory implements BuilderFactory<StatementBuilder<SceneDefinition>> {
 
     private final CommitManager commitManager;
@@ -43,7 +42,8 @@ public class BeholderBuilderFactory implements BuilderFactory<StatementBuilder<S
     public StatementBuilder<SceneDefinition> build(String commitHash) {
         final BeholderBuilder beholderBuilder = new BeholderBuilder(
                 variableNameBuilder, colorBuilder, coordinatesBuilder, screenBuilder, shapeBuilder, lightBuilder);
-        beholderBuilder.setLightPropertiesPresent(commitManager.isNewerOrSame(commitHash, Commit.WORKING_COPY.getHash()));
+        beholderBuilder.setLightPropertiesPresent(
+                commitManager.isNewerOrSame(commitHash, Commit.REFACTORED_LIGHT_PROPERTIES.getHash()));
         return beholderBuilder;
     }
 

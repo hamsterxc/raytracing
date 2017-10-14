@@ -48,6 +48,11 @@ public enum Commit {
             "Code builder for XML definitions\n" +
             "Sample definitions"
     ),
+    REFACTORED_LIGHT_PROPERTIES(
+            "bab50e4f3e6d0b560ae9ae9f6b75db68336ef0b2",
+            "Refactored light properties\n" +
+            "Ray collision distance, particles density, max illuminance"
+    ),
 
     WORKING_COPY(
             null,

@@ -5,9 +5,9 @@ import com.lonebytesoft.hamster.raytracing.app.builder.parser.light.definition.C
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.light.definition.LightDefinition;
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.light.definition.PointLightDefinition;
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
-import com.lonebytesoft.hamster.raytracing.scene.RayCollisionDistanceCalculating;
 import com.lonebytesoft.hamster.raytracing.shape.light.AmbientLightSource;
 import com.lonebytesoft.hamster.raytracing.shape.light.ConeLightSource;
+import com.lonebytesoft.hamster.raytracing.shape.light.LightPropertiesProvider;
 import com.lonebytesoft.hamster.raytracing.shape.light.LightSource;
 import com.lonebytesoft.hamster.raytracing.shape.light.PointLightSource;
 
@@ -20,7 +20,7 @@ public class LightSourceBuilder<T extends Coordinates<T>> {
     }
 
     public LightSource<T> buildLightSource(final LightDefinition lightDefinition,
-                                           final RayCollisionDistanceCalculating<T> rayTracer) {
+                                           final LightPropertiesProvider<T> rayTracer) {
         switch(lightDefinition.getType()) {
             case AMBIENT:
                 final AmbientLightDefinition ambientLightDefinition = (AmbientLightDefinition) lightDefinition;
@@ -34,7 +34,7 @@ public class LightSourceBuilder<T extends Coordinates<T>> {
                         coneLightDefinition.getAngle(),
                         coneLightDefinition.getBrightness()
                 );
-                coneLightSource.setRayTracer(rayTracer);
+                coneLightSource.setLightPropertiesProvider(rayTracer);
                 return coneLightSource;
 
             case POINT:
@@ -43,7 +43,7 @@ public class LightSourceBuilder<T extends Coordinates<T>> {
                         coordinatesBuilder.buildCoordinates(pointLightDefinition.getSource()),
                         pointLightDefinition.getBrightness()
                 );
-                pointLightSource.setRayTracer(rayTracer);
+                pointLightSource.setLightPropertiesProvider(rayTracer);
                 return pointLightSource;
 
             default:

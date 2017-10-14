@@ -8,9 +8,11 @@ import com.lonebytesoft.hamster.raytracing.app.builder.code.definition.LightExte
 import com.lonebytesoft.hamster.raytracing.app.builder.code.definition.ScreenExtendedDefinition;
 import com.lonebytesoft.hamster.raytracing.app.builder.code.definition.ShapeExtendedDefinition;
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.scene.definition.SceneDefinition;
+import com.lonebytesoft.hamster.raytracing.app.helper.commit.Commit;
 import com.lonebytesoft.hamster.raytracing.app.helper.commit.CommitManager;
 import com.lonebytesoft.hamster.raytracing.color.Color;
 
+// todo: working copy changes
 public class BeholderBuilderFactory implements BuilderFactory<StatementBuilder<SceneDefinition>> {
 
     private final CommitManager commitManager;
@@ -39,8 +41,10 @@ public class BeholderBuilderFactory implements BuilderFactory<StatementBuilder<S
 
     @Override
     public StatementBuilder<SceneDefinition> build(String commitHash) {
-        return new BeholderBuilder(
+        final BeholderBuilder beholderBuilder = new BeholderBuilder(
                 variableNameBuilder, colorBuilder, coordinatesBuilder, screenBuilder, shapeBuilder, lightBuilder);
+        beholderBuilder.setLightPropertiesPresent(commitManager.isNewerOrSame(commitHash, Commit.WORKING_COPY.getHash()));
+        return beholderBuilder;
     }
 
 }

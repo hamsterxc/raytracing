@@ -11,6 +11,7 @@ import com.lonebytesoft.hamster.raytracing.app.builder.parser.light.definition.L
 import com.lonebytesoft.hamster.raytracing.app.helper.commit.Commit;
 import com.lonebytesoft.hamster.raytracing.app.helper.commit.CommitManager;
 
+// todo: working copy changes
 public class LightBuilderFactory implements BuilderFactory<StatementBuilder<LightExtendedDefinition>> {
 
     private final CommitManager commitManager;
@@ -32,12 +33,28 @@ public class LightBuilderFactory implements BuilderFactory<StatementBuilder<Ligh
     public StatementBuilder<LightExtendedDefinition> build(String commitHash) {
         if(commitManager.isOlder(commitHash, Commit.ADDED_CONE_LIGHT.getHash())) {
             return new PreConeLightBuilder(variableNameBuilder, coordinatesBuilder, vectorBuilder);
+        } else if(commitManager.isOlder(commitHash, Commit.WORKING_COPY.getHash())) {
+            return new PreLightPropertiesLightBuilder(variableNameBuilder, coordinatesBuilder, vectorBuilder);
         } else {
             return new LightBuilder(variableNameBuilder, coordinatesBuilder, vectorBuilder);
         }
     }
 
-    private static class PreConeLightBuilder extends LightBuilder {
+    private static class PreLightPropertiesLightBuilder extends LightBuilder {
+        public PreLightPropertiesLightBuilder(final ExpressionBuilder<String> variableNameBuilder,
+                                              final CoordinatesBuilder coordinatesBuilder,
+                                              final StatementBuilder<VectorDefinition> vectorBuilder) {
+            super(variableNameBuilder, coordinatesBuilder, vectorBuilder);
+        }
+
+        @Override
+        public String build(LightExtendedDefinition extendedDefinition, String name) {
+            return super.build(extendedDefinition, name)
+                    .replace("setLightPropertiesProvider", "setRayTracer");
+        }
+    }
+
+    private static class PreConeLightBuilder extends PreLightPropertiesLightBuilder {
         public PreConeLightBuilder(final ExpressionBuilder<String> variableNameBuilder,
                                    final CoordinatesBuilder coordinatesBuilder,
                                    final StatementBuilder<VectorDefinition> vectorBuilder) {

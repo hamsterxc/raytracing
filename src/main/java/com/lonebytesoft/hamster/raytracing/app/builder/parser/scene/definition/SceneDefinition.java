@@ -1,6 +1,7 @@
 package com.lonebytesoft.hamster.raytracing.app.builder.parser.scene.definition;
 
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.light.definition.LightDefinition;
+import com.lonebytesoft.hamster.raytracing.app.builder.parser.light.definition.LightPropertiesDefinition;
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.shape.definition.ShapeDefinition;
 import com.lonebytesoft.hamster.raytracing.color.Color;
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
@@ -13,13 +14,16 @@ public class SceneDefinition {
 
     private final Color colorDefault;
     private final Coordinates<?> eye;
+    private final LightPropertiesDefinition lightProperties;
     private final ScreenDefinition screen;
     private final Collection<ShapeDefinition> shapes = new ArrayList<>();
     private final Collection<LightDefinition> lights = new ArrayList<>();
 
-    public SceneDefinition(final Color colorDefault, final Coordinates<?> eye, final ScreenDefinition screen) {
+    public SceneDefinition(final Color colorDefault, final Coordinates<?> eye,
+                           final LightPropertiesDefinition lightProperties, final ScreenDefinition screen) {
         this.colorDefault = colorDefault;
         this.eye = eye;
+        this.lightProperties = lightProperties;
         this.screen = screen;
     }
 
@@ -37,6 +41,10 @@ public class SceneDefinition {
 
     public Coordinates<?> getEye() {
         return eye;
+    }
+
+    public LightPropertiesDefinition getLightProperties() {
+        return lightProperties;
     }
 
     public ScreenDefinition getScreen() {

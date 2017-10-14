@@ -3,7 +3,6 @@ package com.lonebytesoft.hamster.raytracing.shape.light;
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
 import com.lonebytesoft.hamster.raytracing.coordinates.CoordinatesCalculator;
 import com.lonebytesoft.hamster.raytracing.ray.Ray;
-import com.lonebytesoft.hamster.raytracing.scene.RayCollisionDistanceCalculating;
 import com.lonebytesoft.hamster.raytracing.util.math.GeometryCalculator;
 import com.lonebytesoft.hamster.raytracing.util.math.MathCalculator;
 
@@ -13,13 +12,10 @@ import java.util.Objects;
 
 public class PointLightSource<T extends Coordinates<T>> implements LightSource<T> {
 
-    // todo: extract magic constant somewhere
-    private static final double PARTICLES_DENSITY = 0.005;
-
     private final T source;
     private final double brightness;
 
-    private RayCollisionDistanceCalculating<T> rayTracer;
+    private LightPropertiesProvider<T> lightPropertiesProvider;
 
     public PointLightSource(final T source, final double brightness) {
         this.source = source;
@@ -46,12 +42,12 @@ public class PointLightSource<T extends Coordinates<T>> implements LightSource<T
     }
 
     protected Double calculateCollisionDistance(final T point) {
-        if(rayTracer == null) {
+        if(lightPropertiesProvider == null) {
             return null;
         } else {
             final T direction = CoordinatesCalculator.subtract(point, source);
             final Ray<T> ray = new Ray<>(source, direction);
-            return rayTracer.calculateRayCollisionDistance(ray);
+            return lightPropertiesProvider.calculateRayCollisionDistance(ray);
         }
     }
 
@@ -89,7 +85,9 @@ public class PointLightSource<T extends Coordinates<T>> implements LightSource<T
                 .map(litArea -> calculateGlowAmount(ray, litArea))
                 .filter(Objects::nonNull)
                 .mapToDouble(amount -> amount)
-                .sum();
+                .sum()
+                * brightness
+                * (lightPropertiesProvider == null ? 1.0 : lightPropertiesProvider.getSpaceParticlesDensity());
     }
 
     private Double calculateGlowAmount(final Ray<T> ray, final LitAreaDefinition litArea) {
@@ -121,21 +119,20 @@ public class PointLightSource<T extends Coordinates<T>> implements LightSource<T
 
             final double lowerValue = Math.atan((a * litArea.getStart() + b) / d);
             final double upperValue = Math.atan((a * litArea.getEnd() + b) / d);
-            final double integral = (upperValue - lowerValue) / d;
-
-            return integral * brightness * PARTICLES_DENSITY;
+            return (upperValue - lowerValue) / d;
         }
     }
 
     protected Collection<LitAreaDefinition> calculateLitArea(final Ray<T> ray) {
-        final Double collisionDistance = rayTracer == null ? null : rayTracer.calculateRayCollisionDistance(ray);
+        final Double collisionDistance =
+                lightPropertiesProvider == null ? null : lightPropertiesProvider.calculateRayCollisionDistance(ray);
         final double end = collisionDistance == null ? Double.MAX_VALUE : collisionDistance;
 
         return Collections.singletonList(new LitAreaDefinition(0, end));
     }
 
-    public void setRayTracer(RayCollisionDistanceCalculating<T> rayTracer) {
-        this.rayTracer = rayTracer;
+    public void setLightPropertiesProvider(LightPropertiesProvider<T> lightPropertiesProvider) {
+        this.lightPropertiesProvider = lightPropertiesProvider;
     }
 
 }

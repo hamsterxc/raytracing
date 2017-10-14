@@ -12,9 +12,17 @@
         <xs:all>
             <xs:element type="colorType" name="colorDefault"/>
             <xs:element type="coordinatesType" name="eye"/>
+            <xs:element type="lightPropertiesType" name="lightProperties" minOccurs="0"/>
             <xs:element type="screenType" name="screen"/>
             <xs:element type="multipleShapesType" name="shapes" minOccurs="0"/>
             <xs:element type="sceneLightsType" name="lights" minOccurs="0"/>
+        </xs:all>
+    </xs:complexType>
+
+    <xs:complexType name="lightPropertiesType">
+        <xs:all>
+            <xs:element type="xs:decimal" name="illuminanceAmountMax" minOccurs="0"/>
+            <xs:element type="xs:decimal" name="spaceParticlesDensity" minOccurs="0"/>
         </xs:all>
     </xs:complexType>
 

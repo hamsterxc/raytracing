@@ -59,8 +59,9 @@ public class LightBuilder implements StatementBuilder<LightExtendedDefinition> {
                         .append(coneLightDefinition.getBrightness())
                         .append(");\n");
 
-                if(extendedDefinition.getRayTracerName() != null) {
-                    coneLightCode.append(buildRayTracerSetStatement(name, extendedDefinition.getRayTracerName()));
+                if(extendedDefinition.getLightPropertiesProviderName() != null) {
+                    coneLightCode.append(buildLightPropertiesProviderSetStatement(
+                            name, extendedDefinition.getLightPropertiesProviderName()));
                 }
 
                 return coneLightCode.toString();
@@ -80,8 +81,9 @@ public class LightBuilder implements StatementBuilder<LightExtendedDefinition> {
                         .append(pointLightDefinition.getBrightness())
                         .append(");\n");
 
-                if(extendedDefinition.getRayTracerName() != null) {
-                    pointLightCode.append(buildRayTracerSetStatement(name, extendedDefinition.getRayTracerName()));
+                if(extendedDefinition.getLightPropertiesProviderName() != null) {
+                    pointLightCode.append(buildLightPropertiesProviderSetStatement(
+                            name, extendedDefinition.getLightPropertiesProviderName()));
                 }
 
                 return pointLightCode.toString();
@@ -91,8 +93,9 @@ public class LightBuilder implements StatementBuilder<LightExtendedDefinition> {
         }
     }
 
-    private String buildRayTracerSetStatement(final String lightSourceName, final String rayTracerName) {
-        return lightSourceName + ".setRayTracer(" + rayTracerName + ");\n";
+    private String buildLightPropertiesProviderSetStatement(final String lightSourceName,
+                                                            final String lightPropertiesProviderName) {
+        return lightSourceName + ".setLightPropertiesProvider(" + lightPropertiesProviderName + ");\n";
     }
 
 }

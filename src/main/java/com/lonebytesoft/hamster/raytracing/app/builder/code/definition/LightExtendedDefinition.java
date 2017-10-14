@@ -6,13 +6,13 @@ public class LightExtendedDefinition {
 
     private final LightDefinition lightDefinition;
     private final int spaceDimensions;
-    private final String rayTracerName;
+    private final String lightPropertiesProviderName;
 
     public LightExtendedDefinition(final LightDefinition lightDefinition,
-                                   final int spaceDimensions, final String rayTracerName) {
+                                   final int spaceDimensions, final String lightPropertiesProviderName) {
         this.lightDefinition = lightDefinition;
         this.spaceDimensions = spaceDimensions;
-        this.rayTracerName = rayTracerName;
+        this.lightPropertiesProviderName = lightPropertiesProviderName;
     }
 
     public LightDefinition getLightDefinition() {
@@ -23,8 +23,8 @@ public class LightExtendedDefinition {
         return spaceDimensions;
     }
 
-    public String getRayTracerName() {
-        return rayTracerName;
+    public String getLightPropertiesProviderName() {
+        return lightPropertiesProviderName;
     }
 
 }

@@ -10,9 +10,9 @@ import com.lonebytesoft.hamster.raytracing.ray.Ray;
 import com.lonebytesoft.hamster.raytracing.ray.RayTraceResult;
 import com.lonebytesoft.hamster.raytracing.ray.RayTraceResultItem;
 import com.lonebytesoft.hamster.raytracing.ray.RayTraceResultItemWeighted;
-import com.lonebytesoft.hamster.raytracing.scene.RayCollisionDistanceCalculating;
 import com.lonebytesoft.hamster.raytracing.scene.screen.Screen;
 import com.lonebytesoft.hamster.raytracing.shape.Shape;
+import com.lonebytesoft.hamster.raytracing.shape.light.LightPropertiesProvider;
 import com.lonebytesoft.hamster.raytracing.shape.light.LightSource;
 import com.lonebytesoft.hamster.raytracing.util.math.GeometryCalculator;
 import org.slf4j.Logger;
@@ -24,13 +24,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
-public class BeholderImpl<S extends Coordinates<S>, F extends Coordinates<F>>
-        implements Beholder<F>, RayCollisionDistanceCalculating<S> {
+public class BeholderImpl<S extends Coordinates<S>, F extends Coordinates<F>> implements Beholder<F>, LightPropertiesProvider<S> {
 
     private static final Logger logger = LoggerFactory.getLogger(BeholderImpl.class);
-
-    // todo: extract magic constant somewhere
-    public static final double ILLUMINANCE_AMOUNT_MAX = 10.0;
 
     private final S eye;
     private final Screen<S, F> screen;
@@ -38,6 +34,10 @@ public class BeholderImpl<S extends Coordinates<S>, F extends Coordinates<F>>
 
     private final Collection<Shape<S>> shapes = new ArrayList<>();
     private final Collection<LightSource<S>> lightSources = new ArrayList<>();
+
+    // reasonable default values
+    private double illuminanceAmountMax = 10.0;
+    private double spaceParticlesDensity = 0.005;
 
     public BeholderImpl(final S eye, final Screen<S, F> screen, final Color colorDefault) {
         this.eye = eye;
@@ -119,7 +119,7 @@ public class BeholderImpl<S extends Coordinates<S>, F extends Coordinates<F>>
     }
 
     private double calculateIlluminance(final double lightAmount) {
-        return lightAmount / ILLUMINANCE_AMOUNT_MAX;
+        return lightAmount / getIlluminanceAmountMax();
     }
 
     @Override
@@ -131,6 +131,24 @@ public class BeholderImpl<S extends Coordinates<S>, F extends Coordinates<F>>
                 .map(RayTraceResult::getDistance)
                 .min(Double::compare)
                 .orElse(null);
+    }
+
+    @Override
+    public double getIlluminanceAmountMax() {
+        return illuminanceAmountMax;
+    }
+
+    public void setIlluminanceAmountMax(double illuminanceAmountMax) {
+        this.illuminanceAmountMax = illuminanceAmountMax;
+    }
+
+    @Override
+    public double getSpaceParticlesDensity() {
+        return spaceParticlesDensity;
+    }
+
+    public void setSpaceParticlesDensity(double spaceParticlesDensity) {
+        this.spaceParticlesDensity = spaceParticlesDensity;
     }
 
     public void addShape(Shape<S> shape) {

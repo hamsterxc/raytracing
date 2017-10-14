@@ -11,6 +11,8 @@ import com.lonebytesoft.hamster.raytracing.app.builder.parser.layer.definition.L
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.layer.parser.LayerTagParser;
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.layer.parser.TexturedLayerTagParser;
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.light.definition.LightDefinition;
+import com.lonebytesoft.hamster.raytracing.app.builder.parser.light.definition.LightPropertiesDefinition;
+import com.lonebytesoft.hamster.raytracing.app.builder.parser.light.parser.LightPropertiesTagParser;
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.light.parser.LightTagParser;
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.scene.definition.SceneDefinition;
 import com.lonebytesoft.hamster.raytracing.app.builder.parser.scene.definition.ScreenDefinition;
@@ -45,10 +47,11 @@ public class XmlParserFactory {
 
         final TagParser<PixelColoringDefinition> pixelColoringParser = new PixelColoringTagParser(doubleParser, colorParser);
 
+        final TagParser<LightPropertiesDefinition> lightPropertiesParser = new LightPropertiesTagParser(doubleParser);
         final TagParser<ScreenDefinition> screenParser = new ScreenTagParser(vectorParser, shapeParser, pixelColoringParser);
 
         final TagParser<SceneDefinition> sceneParser = new SceneTagParser(
-                colorParser, vectorParser, screenParser, shapeParser, lightParser);
+                colorParser, vectorParser, lightPropertiesParser, screenParser, shapeParser, lightParser);
 
         final Validator validator = new ValidatorImpl();
 

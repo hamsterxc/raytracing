@@ -43,6 +43,16 @@ public class PictureBuilder<S extends Coordinates<S>, F extends Coordinates<F>> 
                 sceneDefinition.getColorDefault()
         );
 
+        final Double illuminanceAmountMax = sceneDefinition.getLightProperties().getIlluminanceAmountMax();
+        if(illuminanceAmountMax != null) {
+            beholder.setIlluminanceAmountMax(illuminanceAmountMax);
+        }
+
+        final Double spaceParticlesDensity = sceneDefinition.getLightProperties().getSpaceParticlesDensity();
+        if(spaceParticlesDensity != null) {
+            beholder.setSpaceParticlesDensity(spaceParticlesDensity);
+        }
+
         for(final ShapeDefinition shapeDefinition : sceneDefinition.getShapes()) {
             beholder.addShape(shapeBuilder.buildShape(shapeDefinition));
         }

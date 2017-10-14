@@ -17,6 +17,9 @@ public class BeholderBuilder implements StatementBuilder<SceneDefinition> {
     private final StatementBuilder<ShapeExtendedDefinition> shapeBuilder;
     private final StatementBuilder<LightExtendedDefinition> lightBuilder;
 
+    // todo: hack: commit-specific property to reduce code duplication
+    private boolean isLightPropertiesPresent = true;
+
     public BeholderBuilder(final ExpressionBuilder<String> variableNameBuilder,
                            final ExpressionBuilder<Color> colorBuilder,
                            final CoordinatesBuilder coordinatesBuilder,
@@ -51,6 +54,18 @@ public class BeholderBuilder implements StatementBuilder<SceneDefinition> {
                 .append("> beholder = new BeholderImpl<>(eye, screen, ")
                 .append(colorBuilder.build(definition.getColorDefault()))
                 .append(");\n");
+        
+        if(isLightPropertiesPresent) {
+            final Double illuminanceAmountMax = definition.getLightProperties().getIlluminanceAmountMax();
+            if(illuminanceAmountMax != null) {
+                code.append("beholder.setIlluminanceAmountMax(").append(illuminanceAmountMax).append(");\n");
+            }
+
+            final Double spaceParticlesDensity = definition.getLightProperties().getSpaceParticlesDensity();
+            if(spaceParticlesDensity != null) {
+                code.append("beholder.setSpaceParticlesDensity(").append(spaceParticlesDensity).append(");\n");
+            }
+        }
 
         for(final ShapeDefinition shapeDefinition : definition.getShapes()) {
             final String shapeName = variableNameBuilder.build("shape");
@@ -75,4 +90,8 @@ public class BeholderBuilder implements StatementBuilder<SceneDefinition> {
         return code.toString();
     }
 
+    public void setLightPropertiesPresent(boolean lightPropertiesPresent) {
+        this.isLightPropertiesPresent = lightPropertiesPresent;
+    }
+    
 }

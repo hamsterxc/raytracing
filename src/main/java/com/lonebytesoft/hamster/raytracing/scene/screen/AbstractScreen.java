@@ -14,11 +14,14 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
 
 public abstract class AbstractScreen<S extends Coordinates<S>, F extends Coordinates<F>> implements Screen<S, F> {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractScreen.class);
+
+    private static final long LOG_MESSAGE_COUNT = 10;
 
     private final F resolution;
     private final PixelColoringStrategy<F> coloringStrategy;
@@ -33,15 +36,29 @@ public abstract class AbstractScreen<S extends Coordinates<S>, F extends Coordin
         final PictureMutable<F> picture = PictureMutableFactory.obtainPictureMutable(resolution);
         final ExecutorService executorService = Executors.newWorkStealingPool();
 
-        for(final F pixelCoordinates : CoordinatesCalculator.getWholePoints(
-                CoordinatesCalculator.constant(resolution, 0.0), resolution)) {
+        final F start = CoordinatesCalculator.constant(resolution, 0.0);
+        long count = 0;
+        for(final F pixelCoordinates : CoordinatesCalculator.getWholePoints(start, resolution)) {
+            count++;
+        }
+
+        final ProgressLogger progressLogger = new ProgressLogger(logger, count, LOG_MESSAGE_COUNT);
+        final AtomicLong counter = new AtomicLong(0);
+        for(final F pixelCoordinates : CoordinatesCalculator.getWholePoints(start, resolution)) {
             executorService.submit(() -> {
-                logger.debug("Getting pixel {}", pixelCoordinates);
-                final Surfaced<F> pixelBoundaries = getPixelBoundaries(pixelCoordinates);
-                picture.setPixelColor(pixelCoordinates, coloringStrategy.getPixelColor(pixelBoundaries, coordinates -> {
-                    final S coordinatesSolid = translate(coordinates);
-                    return rayTracer.apply(coordinatesSolid);
-                }));
+                logger.trace("Getting pixel {}", pixelCoordinates);
+
+                try {
+                    final Surfaced<F> pixelBoundaries = getPixelBoundaries(pixelCoordinates);
+                    picture.setPixelColor(pixelCoordinates, coloringStrategy.getPixelColor(pixelBoundaries, coordinates -> {
+                        final S coordinatesSolid = translate(coordinates);
+                        return rayTracer.apply(coordinatesSolid);
+                    }));
+                } catch (Exception e) {
+                    logger.warn("Failed to calculate pixel color {}: {}", pixelCoordinates, e.getMessage());
+                }
+
+                progressLogger.log(counter.incrementAndGet());
             });
         }
 

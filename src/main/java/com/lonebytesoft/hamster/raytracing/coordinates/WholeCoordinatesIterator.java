@@ -33,7 +33,7 @@ class WholeCoordinatesIterator<T extends Coordinates<T>> implements Iterator<T> 
 
         for(int i = 0; i < current.length; i++) {
             current[i] += 1;
-            if(current[i] > max.getCoordinate(i)) {
+            if(current[i] >= max.getCoordinate(i)) {
                 if(i < current.length - 1) {
                     current[i] = Math.ceil(min.getCoordinate(i));
                 } else {

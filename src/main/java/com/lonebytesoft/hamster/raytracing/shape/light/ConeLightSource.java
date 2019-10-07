@@ -1,7 +1,6 @@
 package com.lonebytesoft.hamster.raytracing.shape.light;
 
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
-import com.lonebytesoft.hamster.raytracing.coordinates.CoordinatesCalculator;
 import com.lonebytesoft.hamster.raytracing.ray.Ray;
 import com.lonebytesoft.hamster.raytracing.util.math.GeometryCalculator;
 import com.lonebytesoft.hamster.raytracing.util.math.MathCalculator;
@@ -10,16 +9,25 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
-public class ConeLightSource<T extends Coordinates<T>> extends PointLightSource<T> {
+public class ConeLightSource<T extends Coordinates> extends PointLightSource<T> {
 
     private final T source;
     private final T direction;
     private final double cos;
+    private final GeometryCalculator<T> geometryCalculator;
 
-    public ConeLightSource(final T source, final T direction, final double angle, final double brightness) {
-        super(source, brightness);
+    public ConeLightSource(
+            final T source,
+            final T direction,
+            final double angle,
+            final double brightness,
+            final GeometryCalculator<T> geometryCalculator
+    ) {
+        super(source, brightness, geometryCalculator);
         this.source = source;
         this.direction = direction;
+        this.geometryCalculator = geometryCalculator;
+
         this.cos = Math.cos(Math.min(Math.abs(angle), Math.PI));
     }
 
@@ -210,9 +218,9 @@ public class ConeLightSource<T extends Coordinates<T>> extends PointLightSource<
 
     @Override
     protected Double calculateCollisionDistance(T point) {
-        final T vector = CoordinatesCalculator.subtract(point, source);
-        final double cos = GeometryCalculator.product(vector, direction) /
-                (GeometryCalculator.length(vector) * GeometryCalculator.length(direction));
+        final T vector = geometryCalculator.subtract(point, source);
+        final double cos = geometryCalculator.product(vector, direction) /
+                (geometryCalculator.length(vector) * geometryCalculator.length(direction));
         if(cos >= this.cos) {
             return super.calculateCollisionDistance(point);
         } else {

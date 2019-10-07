@@ -1,22 +1,28 @@
-package com.lonebytesoft.hamster.raytracing.coordinates;
+package com.lonebytesoft.hamster.raytracing.scene.screen;
+
+import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
+import com.lonebytesoft.hamster.raytracing.util.math.GeometryCalculator;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
+import java.util.stream.IntStream;
 
-class WholeCoordinatesIterator<T extends Coordinates<T>> implements Iterator<T> {
+class WholeCoordinatesIterator<T extends Coordinates> implements Iterator<T> {
 
     private final T min;
     private final T max;
+    private final GeometryCalculator<T> geometryCalculator;
 
     private double[] current;
 
-    public WholeCoordinatesIterator(final T min, final T max) {
+    public WholeCoordinatesIterator(final T min, final T max, final GeometryCalculator<T> geometryCalculator) {
         this.min = min;
         this.max = max;
+        this.geometryCalculator = geometryCalculator;
 
-        this.current = new double[min.getDimensions()];
-        CoordinatesCalculator.iterate(min,
-                index -> current[index] = Math.ceil(min.getCoordinate(index)));
+        this.current = IntStream.range(0, min.getDimensions())
+                .mapToDouble(index -> Math.ceil(min.getCoordinate(index)))
+                .toArray();
     }
 
     @Override
@@ -29,7 +35,7 @@ class WholeCoordinatesIterator<T extends Coordinates<T>> implements Iterator<T> 
         if(current == null) {
             throw new NoSuchElementException();
         }
-        final T next = min.obtain(current);
+        final T next = geometryCalculator.buildVector(index -> current[index]);
 
         for(int i = 0; i < current.length; i++) {
             current[i] += 1;

@@ -6,7 +6,7 @@ import com.lonebytesoft.hamster.raytracing.ray.RayTraceResultItem;
 import com.lonebytesoft.hamster.raytracing.shape.ShapeLayer;
 import com.lonebytesoft.hamster.raytracing.shape.feature.Reflecting;
 
-public class ReflectingAdapter<T extends Coordinates<T>> implements ShapeLayer<T> {
+public class ReflectingAdapter<T extends Coordinates> implements ShapeLayer<T> {
 
     private final Reflecting<T> subject;
 

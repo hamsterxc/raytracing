@@ -2,12 +2,12 @@ package com.lonebytesoft.hamster.raytracing.scene.screen;
 
 import com.lonebytesoft.hamster.raytracing.color.Color;
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
-import com.lonebytesoft.hamster.raytracing.coordinates.CoordinatesCalculator;
 import com.lonebytesoft.hamster.raytracing.picture.Picture;
 import com.lonebytesoft.hamster.raytracing.picture.PictureMutable;
-import com.lonebytesoft.hamster.raytracing.picture.PictureMutableFactory;
+import com.lonebytesoft.hamster.raytracing.picture.PictureMutableImpl;
 import com.lonebytesoft.hamster.raytracing.scene.screen.pixelcolor.PixelColoringStrategy;
 import com.lonebytesoft.hamster.raytracing.shape.feature.Surfaced;
+import com.lonebytesoft.hamster.raytracing.util.math.GeometryCalculator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,8 +16,9 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Function;
+import java.util.stream.StreamSupport;
 
-public abstract class AbstractScreen<S extends Coordinates<S>, F extends Coordinates<F>> implements Screen<S, F> {
+public abstract class AbstractScreen<S extends Coordinates, F extends Coordinates> implements Screen<S, F> {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractScreen.class);
 
@@ -25,26 +26,27 @@ public abstract class AbstractScreen<S extends Coordinates<S>, F extends Coordin
 
     private final F resolution;
     private final PixelColoringStrategy<F> coloringStrategy;
+    private final GeometryCalculator<F> geometryCalculator;
 
-    protected AbstractScreen(final F resolution, final PixelColoringStrategy<F> coloringStrategy) {
+    protected AbstractScreen(
+            final F resolution,
+            final PixelColoringStrategy<F> coloringStrategy,
+            final GeometryCalculator<F> geometryCalculator
+    ) {
         this.resolution = resolution;
         this.coloringStrategy = coloringStrategy;
+        this.geometryCalculator = geometryCalculator;
     }
 
     @Override
     public Picture<F> getPicture(Function<S, Color> rayTracer) {
-        final PictureMutable<F> picture = PictureMutableFactory.obtainPictureMutable(resolution);
+        final PictureMutable<F> picture = new PictureMutableImpl<>(geometryCalculator);
         final ExecutorService executorService = Executors.newWorkStealingPool();
 
-        final F start = CoordinatesCalculator.constant(resolution, 0.0);
-        long count = 0;
-        for(final F pixelCoordinates : CoordinatesCalculator.getWholePoints(start, resolution)) {
-            count++;
-        }
-
+        final long count = StreamSupport.stream(getPixels().spliterator(), false).count();
         final ProgressLogger progressLogger = new ProgressLogger(logger, count, LOG_MESSAGE_COUNT);
         final AtomicLong counter = new AtomicLong(0);
-        for(final F pixelCoordinates : CoordinatesCalculator.getWholePoints(start, resolution)) {
+        for(final F pixelCoordinates : getPixels()) {
             executorService.submit(() -> {
                 logger.trace("Getting pixel {}", pixelCoordinates);
 
@@ -70,6 +72,14 @@ public abstract class AbstractScreen<S extends Coordinates<S>, F extends Coordin
         }
 
         return picture;
+    }
+
+    private Iterable<F> getPixels() {
+        return () -> new WholeCoordinatesIterator<>(
+                geometryCalculator.buildVector(index -> 0.0),
+                resolution,
+                geometryCalculator
+        );
     }
 
     protected abstract Surfaced<F> getPixelBoundaries(F pixelCoordinates);

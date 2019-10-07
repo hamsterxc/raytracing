@@ -1,27 +1,24 @@
 package com.lonebytesoft.hamster.raytracing.coordinates;
 
-public class Coordinates3d extends CoordinatesImpl<Coordinates3d> {
+public interface Coordinates3d extends Coordinates {
 
-    public Coordinates3d(final double x, final double y, final double z) {
-        super(x, y, z);
+    double getX();
+    double getY();
+    double getZ();
+
+    @Override
+    default int getDimensions() {
+        return 3;
     }
 
     @Override
-    public Coordinates3d obtain(double... coordinates) {
-        assertDimensionality(coordinates);
-        return new Coordinates3d(coordinates[0], coordinates[1], coordinates[2]);
-    }
-
-    public double getX() {
-        return getCoordinate(0);
-    }
-
-    public double getY() {
-        return getCoordinate(1);
-    }
-
-    public double getZ() {
-        return getCoordinate(2);
+    default double getCoordinate(int index) {
+        switch (index) {
+            case 0: return getX();
+            case 1: return getY();
+            case 2: return getZ();
+            default: throw new IndexOutOfBoundsException(String.valueOf(index));
+        }
     }
 
 }

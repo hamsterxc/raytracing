@@ -2,7 +2,7 @@ package com.lonebytesoft.hamster.raytracing.ray;
 
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
 
-public class Ray<T extends Coordinates<T>> {
+public class Ray<T extends Coordinates> {
 
     private final T start;
     private final T direction;

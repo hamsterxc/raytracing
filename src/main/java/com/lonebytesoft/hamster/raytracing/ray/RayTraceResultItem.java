@@ -3,7 +3,7 @@ package com.lonebytesoft.hamster.raytracing.ray;
 import com.lonebytesoft.hamster.raytracing.color.Color;
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
 
-public class RayTraceResultItem<T extends Coordinates<T>> {
+public class RayTraceResultItem<T extends Coordinates> {
 
     private final RayTraceResultItemType type;
 

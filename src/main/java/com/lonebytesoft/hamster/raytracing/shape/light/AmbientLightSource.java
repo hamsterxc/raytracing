@@ -3,7 +3,7 @@ package com.lonebytesoft.hamster.raytracing.shape.light;
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
 import com.lonebytesoft.hamster.raytracing.ray.Ray;
 
-public class AmbientLightSource<T extends Coordinates<T>> implements LightSource<T> {
+public class AmbientLightSource<T extends Coordinates> implements LightSource<T> {
 
     private final double brightness;
 

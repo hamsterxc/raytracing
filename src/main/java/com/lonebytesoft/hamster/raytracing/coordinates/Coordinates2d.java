@@ -1,23 +1,22 @@
 package com.lonebytesoft.hamster.raytracing.coordinates;
 
-public class Coordinates2d extends CoordinatesImpl<Coordinates2d> {
+public interface Coordinates2d extends Coordinates {
 
-    public Coordinates2d(final double x, final double y) {
-        super(x, y);
+    double getX();
+    double getY();
+
+    @Override
+    default int getDimensions() {
+        return 2;
     }
 
     @Override
-    public Coordinates2d obtain(double... coordinates) {
-        assertDimensionality(coordinates);
-        return new Coordinates2d(coordinates[0], coordinates[1]);
-    }
-
-    public double getX() {
-        return getCoordinate(0);
-    }
-
-    public double getY() {
-        return getCoordinate(1);
+    default double getCoordinate(int index) {
+        switch (index) {
+            case 0: return getX();
+            case 1: return getY();
+            default: throw new IndexOutOfBoundsException(String.valueOf(index));
+        }
     }
 
 }

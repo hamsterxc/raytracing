@@ -6,7 +6,7 @@ import com.lonebytesoft.hamster.raytracing.ray.RayTraceResultItem;
 import com.lonebytesoft.hamster.raytracing.shape.ShapeLayer;
 import com.lonebytesoft.hamster.raytracing.shape.feature.Transparent;
 
-public class TransparentAdapter<T extends Coordinates<T>> implements ShapeLayer<T> {
+public class TransparentAdapter<T extends Coordinates> implements ShapeLayer<T> {
 
     private final Transparent<T> subject;
 

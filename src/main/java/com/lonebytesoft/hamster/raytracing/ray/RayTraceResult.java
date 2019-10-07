@@ -5,7 +5,7 @@ import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
 import java.util.Collection;
 import java.util.Collections;
 
-public class RayTraceResult<T extends Coordinates<T>> {
+public class RayTraceResult<T extends Coordinates> {
 
     private final Collection<RayTraceResultItemWeighted<T>> items;
     private final double distance;

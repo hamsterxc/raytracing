@@ -6,7 +6,7 @@ import com.lonebytesoft.hamster.raytracing.ray.Ray;
 import com.lonebytesoft.hamster.raytracing.ray.RayTraceResultItem;
 import com.lonebytesoft.hamster.raytracing.shape.ShapeLayer;
 
-public class SolidColoredAdapter<T extends Coordinates<T>> implements ShapeLayer<T> {
+public class SolidColoredAdapter<T extends Coordinates> implements ShapeLayer<T> {
 
     private final Color color;
 

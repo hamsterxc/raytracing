@@ -3,10 +3,13 @@ package com.lonebytesoft.hamster.raytracing.format.reader;
 import com.lonebytesoft.hamster.raytracing.color.Color;
 import com.lonebytesoft.hamster.raytracing.color.ColorCalculator;
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates2d;
+import com.lonebytesoft.hamster.raytracing.coordinates.factory.Coordinates2dFactory;
+import com.lonebytesoft.hamster.raytracing.coordinates.factory.CoordinatesFactory;
 import com.lonebytesoft.hamster.raytracing.format.BmpFormatCommons;
 import com.lonebytesoft.hamster.raytracing.picture.Picture;
 import com.lonebytesoft.hamster.raytracing.picture.PictureMutable;
-import com.lonebytesoft.hamster.raytracing.picture.PictureMutableFactory;
+import com.lonebytesoft.hamster.raytracing.picture.PictureMutableImpl;
+import com.lonebytesoft.hamster.raytracing.util.math.GeometryCalculator;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,7 +41,9 @@ public class BmpReader implements PictureReader<Coordinates2d> {
         verify(BmpFormatCommons.calculateFileSize(width, height), sizeTotal, 4);
 
         // Bitmap data
-        final PictureMutable<Coordinates2d> picture = PictureMutableFactory.obtainPictureMutable(new Coordinates2d(0, 0));
+        final CoordinatesFactory<Coordinates2d> coordinatesFactory = new Coordinates2dFactory();
+        final GeometryCalculator<Coordinates2d> geometryCalculator = new GeometryCalculator<>(coordinatesFactory);
+        final PictureMutable<Coordinates2d> picture = new PictureMutableImpl<>(geometryCalculator);
         final int padding = BmpFormatCommons.calculatePadding(width);
         for(int y = height - 1; y >= 0; y--) {
             for(int x = 0; x < width; x++) {
@@ -47,7 +52,7 @@ public class BmpReader implements PictureReader<Coordinates2d> {
                 final double red = ColorCalculator.colorByteToComponent(readOne(inputStream));
                 skip(inputStream, BmpFormatCommons.BYTES_PER_PIXEL - 3);
 
-                picture.setPixelColor(new Coordinates2d(x, y), new Color(red, green, blue));
+                picture.setPixelColor(coordinatesFactory.build(x, y), new Color(red, green, blue));
             }
             skip(inputStream, padding);
         }

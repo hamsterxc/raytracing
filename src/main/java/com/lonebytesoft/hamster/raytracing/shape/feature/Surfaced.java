@@ -2,11 +2,12 @@ package com.lonebytesoft.hamster.raytracing.shape.feature;
 
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
 import com.lonebytesoft.hamster.raytracing.ray.Ray;
+import com.lonebytesoft.hamster.raytracing.util.math.GeometryCalculator;
 
-public interface Surfaced<T extends Coordinates<T>> {
+public interface Surfaced<S extends Coordinates> {
 
-    <F extends Coordinates<F>> F mapToSurface(Ray<T> ray, F reference);
+    <F extends Coordinates> F mapToSurface(Ray<S> ray, GeometryCalculator<F> geometryCalculator);
 
-    <F extends Coordinates<F>> T mapFromSurface(F coordinates);
+    <F extends Coordinates> S mapFromSurface(F coordinates);
 
 }

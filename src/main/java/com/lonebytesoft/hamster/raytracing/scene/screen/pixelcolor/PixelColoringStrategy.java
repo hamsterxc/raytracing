@@ -6,7 +6,7 @@ import com.lonebytesoft.hamster.raytracing.shape.feature.Surfaced;
 
 import java.util.function.Function;
 
-public interface PixelColoringStrategy<T extends Coordinates<T>> {
+public interface PixelColoringStrategy<T extends Coordinates> {
 
     Color getPixelColor(Surfaced<T> pixelBoundaries, Function<T, Color> coloring);
 

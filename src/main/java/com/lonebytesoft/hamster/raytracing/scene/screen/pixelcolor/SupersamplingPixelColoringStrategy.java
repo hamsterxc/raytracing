@@ -5,6 +5,7 @@ import com.lonebytesoft.hamster.raytracing.color.ColorCalculator;
 import com.lonebytesoft.hamster.raytracing.color.ColorWeighted;
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
 import com.lonebytesoft.hamster.raytracing.shape.feature.Surfaced;
+import com.lonebytesoft.hamster.raytracing.util.math.GeometryCalculator;
 import com.lonebytesoft.hamster.raytracing.util.variant.Options;
 import com.lonebytesoft.hamster.raytracing.util.variant.Variant;
 
@@ -12,27 +13,27 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.Function;
 
-public class SupersamplingPixelColoringStrategy<T extends Coordinates<T>> implements PixelColoringStrategy<T> {
+public class SupersamplingPixelColoringStrategy<T extends Coordinates> implements PixelColoringStrategy<T> {
 
     private final Color colorDefault;
-    private final Collection<T> samples = new ArrayList<>();
+    private final Collection<T> samples;
 
-    public SupersamplingPixelColoringStrategy(final int multiplier, final Color colorDefault, final T reference) {
+    public SupersamplingPixelColoringStrategy(
+            final int multiplier,
+            final Color colorDefault,
+            final GeometryCalculator<T> geometryCalculator
+    ) {
         if(multiplier < 1) {
             throw new IllegalArgumentException("Invalid sampling multiplier: " + multiplier);
         }
 
         this.colorDefault = colorDefault;
 
-        final int dimensions = reference.getDimensions();
-        final Variant samplesVariant = new Options(dimensions, multiplier);
-        final double[] coords = new double[dimensions];
-        Variant.iterate(samplesVariant, (index, sample) -> {
-            for(int i = 0; i < dimensions; i++) {
-                coords[i] = (2.0 * sample.get(i) + 1.0) / (2.0 * multiplier);
-            }
-            this.samples.add(reference.obtain(coords));
-        });
+        final int dimensions = geometryCalculator.buildVector(index -> 0.0).getDimensions();
+        final Variant samples = new Options(dimensions, multiplier);
+        this.samples = new ArrayList<>();
+        Variant.iterate(samples, (sampleIndex, sample) ->
+                this.samples.add(geometryCalculator.buildVector(index -> (2.0 * sample.get(index) + 1.0) / (2.0 * multiplier))));
     }
 
     @Override

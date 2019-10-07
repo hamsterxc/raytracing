@@ -1,7 +1,6 @@
 package com.lonebytesoft.hamster.raytracing.shape.light;
 
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
-import com.lonebytesoft.hamster.raytracing.coordinates.CoordinatesCalculator;
 import com.lonebytesoft.hamster.raytracing.ray.Ray;
 import com.lonebytesoft.hamster.raytracing.util.math.GeometryCalculator;
 import com.lonebytesoft.hamster.raytracing.util.math.MathCalculator;
@@ -10,29 +9,35 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Objects;
 
-public class PointLightSource<T extends Coordinates<T>> implements LightSource<T> {
+public class PointLightSource<T extends Coordinates> implements LightSource<T> {
 
     private final T source;
     private final double brightness;
+    private final GeometryCalculator<T> geometryCalculator;
 
     private LightPropertiesProvider<T> lightPropertiesProvider;
 
-    public PointLightSource(final T source, final double brightness) {
+    public PointLightSource(
+            final T source,
+            final double brightness,
+            final GeometryCalculator<T> geometryCalculator
+    ) {
         this.source = source;
         this.brightness = brightness;
+        this.geometryCalculator = geometryCalculator;
     }
 
     @Override
     public Double calculateLightAmount(T point, T normal) {
-        final T vector = CoordinatesCalculator.subtract(source, point);
-        final double distance = GeometryCalculator.length(vector);
+        final T vector = geometryCalculator.subtract(source, point);
+        final double distance = geometryCalculator.length(vector);
         final Double rayCollisionDistance = calculateCollisionDistance(point);
         if(isVisible(distance, rayCollisionDistance)) {
             final double cos;
             if(normal == null) {
                 cos = 1.0;
             } else {
-                cos = Math.abs(GeometryCalculator.product(normal, vector) / (GeometryCalculator.length(normal) * distance));
+                cos = Math.abs(geometryCalculator.product(normal, vector) / (geometryCalculator.length(normal) * distance));
             }
 
             return brightness * cos / (distance * distance);
@@ -45,7 +50,7 @@ public class PointLightSource<T extends Coordinates<T>> implements LightSource<T
         if(lightPropertiesProvider == null) {
             return null;
         } else {
-            final T direction = CoordinatesCalculator.subtract(point, source);
+            final T direction = geometryCalculator.subtract(point, source);
             final Ray<T> ray = new Ray<>(source, direction);
             return lightPropertiesProvider.calculateRayCollisionDistance(ray);
         }

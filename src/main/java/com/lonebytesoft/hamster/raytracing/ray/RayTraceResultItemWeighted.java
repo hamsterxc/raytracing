@@ -2,7 +2,7 @@ package com.lonebytesoft.hamster.raytracing.ray;
 
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
 
-public class RayTraceResultItemWeighted<T extends Coordinates<T>> {
+public class RayTraceResultItemWeighted<T extends Coordinates> {
 
     private final RayTraceResultItem<T> resultItem;
     private final double weight;

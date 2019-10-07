@@ -9,7 +9,7 @@ import com.lonebytesoft.hamster.raytracing.shape.feature.GeometryCalculating;
 import java.util.ArrayList;
 import java.util.Collection;
 
-public class CompoundShape<T extends Coordinates<T>> implements Shape<T> {
+public class CompoundShape<T extends Coordinates> implements Shape<T> {
 
     private final GeometryCalculating<T> subject;
     private final Collection<ShapeLayerWeighted> layers = new ArrayList<>();

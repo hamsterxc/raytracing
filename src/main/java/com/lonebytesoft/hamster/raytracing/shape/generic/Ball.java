@@ -1,7 +1,6 @@
 package com.lonebytesoft.hamster.raytracing.shape.generic;
 
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
-import com.lonebytesoft.hamster.raytracing.coordinates.CoordinatesCalculator;
 import com.lonebytesoft.hamster.raytracing.ray.Ray;
 import com.lonebytesoft.hamster.raytracing.shape.feature.GeometryCalculating;
 import com.lonebytesoft.hamster.raytracing.shape.feature.Reflecting;
@@ -11,17 +10,23 @@ import com.lonebytesoft.hamster.raytracing.shape.feature.Transparent;
 import com.lonebytesoft.hamster.raytracing.util.math.GeometryCalculator;
 import com.lonebytesoft.hamster.raytracing.util.math.MathCalculator;
 
-public class Ball<T extends Coordinates<T>>
+public class Ball<T extends Coordinates>
         implements GeometryCalculating<T>, Reflecting<T>, Refracting<T>, Transparent<T>, Surfaced<T> {
 
     private final T center;
     private final double radius;
+    private final GeometryCalculator<T> geometryCalculator;
 
     private final double delta;
 
-    public Ball(final T center, final double radius) {
+    public Ball(
+            final T center,
+            final double radius,
+            final GeometryCalculator<T> geometryCalculator
+    ) {
         this.center = center;
         this.radius = radius;
+        this.geometryCalculator = geometryCalculator;
 
         this.delta = Math.max(this.radius / 1e6, MathCalculator.DOUBLE_DELTA_APPROX);
     }
@@ -32,7 +37,7 @@ public class Ball<T extends Coordinates<T>>
         if(multiplier == null) {
             return null;
         } else {
-            final double length = GeometryCalculator.length(ray.getDirection());
+            final double length = geometryCalculator.length(ray.getDirection());
             return multiplier * length;
         }
     }
@@ -45,16 +50,16 @@ public class Ball<T extends Coordinates<T>>
         } else {
             // normal is the radius in point of intersection
             if(isInside(ray.getStart())) {
-                return CoordinatesCalculator.subtract(center, intersection);
+                return geometryCalculator.subtract(center, intersection);
             } else {
-                return CoordinatesCalculator.subtract(intersection, center);
+                return geometryCalculator.subtract(intersection, center);
             }
         }
     }
 
     @Override
     public Ray<T> calculateReflection(Ray<T> ray) {
-        return GeometryCalculator.calculateReflection(ray, calculateIntersection(ray), calculateNormal(ray), delta);
+        return geometryCalculator.calculateReflection(ray, calculateIntersection(ray), calculateNormal(ray), delta);
     }
 
     @Override
@@ -62,15 +67,15 @@ public class Ball<T extends Coordinates<T>>
         final T intersection = calculateIntersection(ray);
         final T normal = calculateNormal(ray);
         if(isInside(ray.getStart())) {
-            return GeometryCalculator.calculateRefraction(ray, intersection, normal, coeffSelf, coeffSpace, delta);
+            return geometryCalculator.calculateRefraction(ray, intersection, normal, coeffSelf, coeffSpace, delta);
         } else {
-            return GeometryCalculator.calculateRefraction(ray, intersection, normal, coeffSpace, coeffSelf, delta);
+            return geometryCalculator.calculateRefraction(ray, intersection, normal, coeffSpace, coeffSelf, delta);
         }
     }
 
     @Override
     public Ray<T> calculatePassThrough(Ray<T> ray) {
-        return GeometryCalculator.calculatePassThrough(ray, calculateIntersection(ray), delta);
+        return geometryCalculator.calculatePassThrough(ray, calculateIntersection(ray), delta);
     }
 
     /**
@@ -81,7 +86,7 @@ public class Ball<T extends Coordinates<T>>
      */
     // https://en.wikipedia.org/wiki/N-sphere#Spherical_coordinates
     @Override
-    public <F extends Coordinates<F>> F mapToSurface(Ray<T> ray, F reference) {
+    public <F extends Coordinates> F mapToSurface(Ray<T> ray, GeometryCalculator<F> geometryCalculator) {
         final T intersection = calculateIntersection(ray);
         if(intersection == null) {
             return null;
@@ -109,14 +114,14 @@ public class Ball<T extends Coordinates<T>>
             phi[dimensions - 2] = 2.0 - phi[dimensions - 2];
         }
 
-        return reference.obtain(phi);
+        return geometryCalculator.buildVector(index -> phi[index]);
     }
 
     /**
-     * @see #mapToSurface(Ray, Coordinates)
+     * @see #mapToSurface(Ray, GeometryCalculator)
      */
     @Override
-    public <F extends Coordinates<F>> T mapFromSurface(F coordinates) {
+    public <F extends Coordinates> T mapFromSurface(F coordinates) {
         final int dimensions = center.getDimensions();
         final double[] coords = new double[dimensions];
 
@@ -128,7 +133,7 @@ public class Ball<T extends Coordinates<T>>
         }
         coords[dimensions - 1] = sinuses + center.getCoordinate(dimensions - 1);
 
-        return center.obtain(coords);
+        return geometryCalculator.buildVector(index -> coords[index]);
     }
 
     private T calculateIntersection(final Ray<T> ray) {
@@ -136,7 +141,7 @@ public class Ball<T extends Coordinates<T>>
         if(multiplier == null) {
             return null;
         } else {
-            return GeometryCalculator.follow(ray.getStart(), ray.getDirection(), multiplier);
+            return geometryCalculator.follow(ray.getStart(), ray.getDirection(), multiplier);
         }
     }
 
@@ -193,7 +198,7 @@ public class Ball<T extends Coordinates<T>>
     }
 
     private boolean isInside(final T point) {
-        return GeometryCalculator.length(CoordinatesCalculator.subtract(point, center)) <= radius;
+        return geometryCalculator.length(geometryCalculator.subtract(point, center)) <= radius;
     }
 
     @Override

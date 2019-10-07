@@ -2,7 +2,7 @@ package com.lonebytesoft.hamster.raytracing.picture;
 
 import com.lonebytesoft.hamster.raytracing.color.Color;
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
-import com.lonebytesoft.hamster.raytracing.coordinates.CoordinatesCalculator;
+import com.lonebytesoft.hamster.raytracing.util.math.GeometryCalculator;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -10,13 +10,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-class PictureGenericImpl<T extends Coordinates<T>> implements PictureMutable<T> {
+public class PictureMutableImpl<T extends Coordinates> implements PictureMutable<T> {
 
-    private final T reference;
-    private final Map<List<Double>, Color> pixelColors = new ConcurrentHashMap<>();
+    private final GeometryCalculator<T> geometryCalculator;
+    private final Map<List<Double>, Color> pixelColors;
 
-    public PictureGenericImpl(final T reference) {
-        this.reference = reference;
+    public PictureMutableImpl(final GeometryCalculator<T> geometryCalculator) {
+        this.geometryCalculator = geometryCalculator;
+        this.pixelColors = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -55,8 +56,8 @@ class PictureGenericImpl<T extends Coordinates<T>> implements PictureMutable<T> 
 
         @Override
         public T next() {
-            final List<Double> coords = iterator.next();
-            return CoordinatesCalculator.transform(reference, coords::get);
+            final List<Double> next = iterator.next();
+            return geometryCalculator.buildVector(next::get);
         }
 
     }

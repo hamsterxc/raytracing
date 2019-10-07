@@ -1,7 +1,6 @@
 package com.lonebytesoft.hamster.raytracing.shape.generic.orthotope;
 
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
-import com.lonebytesoft.hamster.raytracing.coordinates.CoordinatesCalculator;
 import com.lonebytesoft.hamster.raytracing.ray.Ray;
 import com.lonebytesoft.hamster.raytracing.shape.feature.GeometryCalculating;
 import com.lonebytesoft.hamster.raytracing.shape.feature.Reflecting;
@@ -22,21 +21,30 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 
-public class GeneralOrthotope<T extends Coordinates<T>>
+public class GeneralOrthotope<T extends Coordinates>
         implements GeometryCalculating<T>, Surfaced<T>, Transparent<T>, Reflecting<T>, Refracting<T> {
 
     private final T base;
     private final List<T> vectors;
     private final boolean isInfinite;
+    private final GeometryCalculator<T> geometryCalculator;
 
     private final double delta;
 
-    public GeneralOrthotope(final T base, final List<T> vectors, final boolean isInfinite) {
+    public GeneralOrthotope(
+            final T base,
+            final List<T> vectors,
+            final boolean isInfinite,
+            final GeometryCalculator<T> geometryCalculator
+    ) {
         final int size = vectors.size();
         for(int i = 0; i < size - 1; i++) {
             for(int j = i + 1; j < size; j++) {
-                final double product = GeometryCalculator.product(vectors.get(i), vectors.get(j));
+                final double product = geometryCalculator.product(vectors.get(i), vectors.get(j));
                 if(!MathCalculator.isEqualApproximately(product, 0.0)) {
                     throw new IllegalArgumentException("Vectors #" + (i + 1) + " and #" + (j + 1) + " not orthogonal");
                 }
@@ -46,10 +54,11 @@ public class GeneralOrthotope<T extends Coordinates<T>>
         this.base = base;
         this.vectors = Collections.unmodifiableList(vectors);
         this.isInfinite = isInfinite;
+        this.geometryCalculator = geometryCalculator;
 
         double delta = MathCalculator.DOUBLE_DELTA_APPROX;
         for(final T vector : this.vectors) {
-            delta = Math.max(delta, GeometryCalculator.length(vector) / 1e6);
+            delta = Math.max(delta, geometryCalculator.length(vector) / 1e6);
         }
         this.delta = delta;
     }
@@ -68,7 +77,7 @@ public class GeneralOrthotope<T extends Coordinates<T>>
         if(intersection == null) {
             return null;
         } else {
-            final double length = GeometryCalculator.length(ray.getDirection());
+            final double length = geometryCalculator.length(ray.getDirection());
             return intersection.getDistanceMultiplier() * length;
         }
     }
@@ -88,7 +97,7 @@ public class GeneralOrthotope<T extends Coordinates<T>>
             } else {
                 final T vector = vectors.get((int) intersection.getFixVectorsIndex());
                 if(intersection.getFixVectorsValueIndex() == 0) {
-                    normal = CoordinatesCalculator.negate(vector);
+                    normal = negate(vector);
                 } else {
                     normal = vector;
                 }
@@ -97,26 +106,16 @@ public class GeneralOrthotope<T extends Coordinates<T>>
             // fixing the last normal coordinate to 1.0
             final Collection<LinearEquation> equations = new ArrayList<>();
             for(final T vector : vectors) {
-                final List<Double> coeffs = new ArrayList<>();
-                CoordinatesCalculator.iterate(vector, index -> {
-                    if(index < spaceDimensions - 1) {
-                        coeffs.add(vector.getCoordinate(index));
-                    } else {
-                        final double free = -vector.getCoordinate(index);
-                        equations.add(new LinearEquation(coeffs, free));
-                    }
-                });
+                final List<Double> coeffs = StreamSupport.stream(vector.spliterator(), false)
+                        .limit(spaceDimensions - 1)
+                        .collect(Collectors.toList());
+                final double free = -vector.getCoordinate(spaceDimensions - 1);
+                equations.add(new LinearEquation(coeffs, free));
             }
 
             final Solution solution = LinearSystemSolver.solve(equations);
             if(solution.getType() == SolutionType.UNIQUE) {
-                normal = CoordinatesCalculator.transform(base, index -> {
-                    if(index < spaceDimensions - 1) {
-                        return solution.getValues().get(index);
-                    } else {
-                        return 1.0;
-                    }
-                });
+                normal = geometryCalculator.buildVector(index -> index < spaceDimensions - 1 ? solution.getValues().get(index) : 1.0);
             } else {
                 throw new IllegalStateException("Unexpected solution type: " + solution.getType().name());
             }
@@ -125,10 +124,14 @@ public class GeneralOrthotope<T extends Coordinates<T>>
         }
 
         if(isInside(ray.getStart())) {
-            return CoordinatesCalculator.negate(normal);
+            return negate(normal);
         } else {
             return normal;
         }
+    }
+
+    private T negate(final T vector) {
+        return geometryCalculator.buildVector(index -> -vector.getCoordinate(index));
     }
 
     /**
@@ -139,8 +142,8 @@ public class GeneralOrthotope<T extends Coordinates<T>>
      * k1', k2, ..., kn: [0..1] - respective vector coefficient
      */
     @Override
-    public <F extends Coordinates<F>> F mapToSurface(Ray<T> ray, F reference) {
-        final int facetDimensions = reference.getDimensions();
+    public <F extends Coordinates> F mapToSurface(Ray<T> ray, GeometryCalculator<F> geometryCalculator) {
+        final int facetDimensions = geometryCalculator.buildVector(index -> 0.0).getDimensions();
         final OrthotopeIntersection intersection = calculateClosestIntersection(ray, facetDimensions);
         if(intersection == null) {
             return null;
@@ -153,15 +156,15 @@ public class GeneralOrthotope<T extends Coordinates<T>>
             final long facetIndex = intersection.getFixVectorsIndex() * fixVariants + intersection.getFixVectorsValueIndex();
             coords[0] += facetIndex;
 
-            return reference.obtain(coords);
+            return geometryCalculator.buildVector(index -> coords[index]);
         }
     }
 
     /**
-     * @see #mapToSurface(Ray, Coordinates)
+     * @see #mapToSurface(Ray, GeometryCalculator)
      */
     @Override
-    public <F extends Coordinates<F>> T mapFromSurface(F coordinates) {
+    public <F extends Coordinates> T mapFromSurface(F coordinates) {
         final int spaceDimensions = base.getDimensions();
         final int orthotopeDimensions = vectors.size();
         final int facetDimensions = coordinates.getDimensions();
@@ -184,20 +187,16 @@ public class GeneralOrthotope<T extends Coordinates<T>>
         }
         final List<Integer> fixVectorsValue = fixValues.current();
 
-        final F facetCoordinates = CoordinatesCalculator.transform(coordinates, index -> {
-            if(index == 0) {
-                return coordinates.getCoordinate(index) - facetIndex;
-            } else {
-                return coordinates.getCoordinate(index);
-            }
-        });
-        return CoordinatesCalculator.transform(base, index -> {
+        return geometryCalculator.buildVector(index -> {
             double coordinate = base.getCoordinate(index);
             int facetCoordinateIndex = 0;
             for(int i = 0; i < orthotopeDimensions; i++) {
                 final int vectorIndex = fixVectors.indexOf(i);
                 if(vectorIndex < 0) {
-                    coordinate += vectors.get(i).getCoordinate(index) * facetCoordinates.getCoordinate(facetCoordinateIndex);
+                    final double facetCoordinate = facetCoordinateIndex == 0
+                            ? coordinates.getCoordinate(facetCoordinateIndex) - facetIndex
+                            : coordinates.getCoordinate(facetCoordinateIndex);
+                    coordinate += vectors.get(i).getCoordinate(index) * facetCoordinate;
                     facetCoordinateIndex++;
                 } else {
                     coordinate += vectors.get(i).getCoordinate(index) * fixVectorsValue.get(vectorIndex);
@@ -209,12 +208,12 @@ public class GeneralOrthotope<T extends Coordinates<T>>
 
     @Override
     public Ray<T> calculatePassThrough(Ray<T> ray) {
-        return GeometryCalculator.calculatePassThrough(ray, calculateIntersectionPoint(ray), delta);
+        return geometryCalculator.calculatePassThrough(ray, calculateIntersectionPoint(ray), delta);
     }
 
     @Override
     public Ray<T> calculateReflection(Ray<T> ray) {
-        return GeometryCalculator.calculateReflection(ray, calculateIntersectionPoint(ray), calculateNormal(ray), delta);
+        return geometryCalculator.calculateReflection(ray, calculateIntersectionPoint(ray), calculateNormal(ray), delta);
     }
 
     @Override
@@ -223,24 +222,25 @@ public class GeneralOrthotope<T extends Coordinates<T>>
         final T normal = calculateNormal(ray);
         // todo: hack: switching inside & outside for "good appearance"?
         if(isInside(ray.getStart())) {
-            return GeometryCalculator.calculateRefraction(ray, intersection, normal, coeffSpace, coeffSelf, delta);
+            return geometryCalculator.calculateRefraction(ray, intersection, normal, coeffSpace, coeffSelf, delta);
         } else {
-            return GeometryCalculator.calculateRefraction(ray, intersection, normal, coeffSelf, coeffSpace, delta);
+            return geometryCalculator.calculateRefraction(ray, intersection, normal, coeffSelf, coeffSpace, delta);
         }
     }
 
     private List<Double> calculateIntersectionSolution(final Ray<T> ray, final T base, final List<T> vectors) {
-        final Collection<LinearEquation> equations = new ArrayList<>();
-        CoordinatesCalculator.iterate(base, index -> {
-            final List<Double> coeffs = new ArrayList<>();
-            coeffs.add(ray.getDirection().getCoordinate(index));
-            for(final T vector : vectors) {
-                coeffs.add(-vector.getCoordinate(index));
-            }
+        final Collection<LinearEquation> equations = IntStream.range(0, base.getDimensions())
+                .mapToObj(index -> {
+                    final List<Double> coeffs = new ArrayList<>();
+                    coeffs.add(ray.getDirection().getCoordinate(index));
+                    for(final T vector : vectors) {
+                        coeffs.add(-vector.getCoordinate(index));
+                    }
 
-            final double free = base.getCoordinate(index) - ray.getStart().getCoordinate(index);
-            equations.add(new LinearEquation(coeffs, free));
-        });
+                    final double free = base.getCoordinate(index) - ray.getStart().getCoordinate(index);
+                    return new LinearEquation(coeffs, free);
+                })
+                .collect(Collectors.toList());
 
         final Solution solution = LinearSystemSolver.solve(equations);
         switch(solution.getType()) {
@@ -294,16 +294,16 @@ public class GeneralOrthotope<T extends Coordinates<T>>
         // the whole space - immediate intersection
         if(isFullOrthotope && isInfinite) {
             // base + k1*v1 + ... + kn*vn = start
-            final Collection<LinearEquation> equations = new ArrayList<>();
-            CoordinatesCalculator.iterate(base, index -> {
-                final List<Double> coeffs = new ArrayList<>();
-                for(final T vector : vectors) {
-                    coeffs.add(vector.getCoordinate(index));
-                }
-
-                final double free = ray.getStart().getCoordinate(index) - base.getCoordinate(index);
-                equations.add(new LinearEquation(coeffs, free));
-            });
+            final Collection<LinearEquation> equations = IntStream.range(0, spaceDimensions)
+                    .mapToObj(index -> {
+                        final List<Double> coeffs = vectors
+                                .stream()
+                                .map(vector -> vector.getCoordinate(index))
+                                .collect(Collectors.toList());
+                        final double free = ray.getStart().getCoordinate(index) - base.getCoordinate(index);
+                        return new LinearEquation(coeffs, free);
+                    })
+                    .collect(Collectors.toList());
 
             final Solution solution = LinearSystemSolver.solve(equations);
             if(solution.getType() == SolutionType.UNIQUE) {
@@ -331,13 +331,12 @@ public class GeneralOrthotope<T extends Coordinates<T>>
             }
 
             Variant.iterate(fixValues, (fixVectorsValueIndex, fixVectorsValue) -> {
-                final T base = CoordinatesCalculator.transform(this.base, index -> {
-                    double coordinate = this.base.getCoordinate(index);
-                    for(int j = 0; j < fixCount; j++) {
-                        coordinate += fixVectorsValue.get(j) * this.vectors.get(fixVectors.get(j)).getCoordinate(index);
-                    }
-                    return coordinate;
-                });
+                final T base = geometryCalculator.buildVector(
+                        index -> this.base.getCoordinate(index) +
+                                IntStream.range(0, fixCount)
+                                        .mapToDouble(j -> fixVectorsValue.get(j) * this.vectors.get(fixVectors.get(j)).getCoordinate(index))
+                                        .sum()
+                );
 
                 final List<Double> solution = calculateIntersectionSolution(ray, base, vectors);
                 if(solution != null) {
@@ -372,16 +371,16 @@ public class GeneralOrthotope<T extends Coordinates<T>>
     }
 
     private boolean isInside(final T point) {
-        final Collection<LinearEquation> equations = new ArrayList<>();
-        CoordinatesCalculator.iterate(base, index -> {
-            final List<Double> coeffs = new ArrayList<>();
-            for(final T vector : vectors) {
-                coeffs.add(vector.getCoordinate(index));
-            }
-
-            final double free = point.getCoordinate(index) - base.getCoordinate(index);
-            equations.add(new LinearEquation(coeffs, free));
-        });
+        final Collection<LinearEquation> equations = IntStream.range(0, base.getDimensions())
+                .mapToObj(index -> {
+                    final List<Double> coeffs = vectors
+                            .stream()
+                            .map(vector -> vector.getCoordinate(index))
+                            .collect(Collectors.toList());
+                    final double free = point.getCoordinate(index) - base.getCoordinate(index);
+                    return new LinearEquation(coeffs, free);
+                })
+                .collect(Collectors.toList());
 
         final Solution solution = LinearSystemSolver.solve(equations);
         return (solution.getType() == SolutionType.UNIQUE) && solution.getValues()
@@ -394,7 +393,7 @@ public class GeneralOrthotope<T extends Coordinates<T>>
         if(intersection == null) {
             return null;
         } else {
-            return GeometryCalculator.follow(ray.getStart(), ray.getDirection(), intersection.getDistanceMultiplier());
+            return geometryCalculator.follow(ray.getStart(), ray.getDirection(), intersection.getDistanceMultiplier());
         }
     }
 

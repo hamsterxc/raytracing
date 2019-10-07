@@ -3,9 +3,12 @@ package com.lonebytesoft.hamster.raytracing.format.writer;
 import com.lonebytesoft.hamster.raytracing.color.Color;
 import com.lonebytesoft.hamster.raytracing.color.ColorCalculator;
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates2d;
+import com.lonebytesoft.hamster.raytracing.coordinates.factory.Coordinates2dFactory;
+import com.lonebytesoft.hamster.raytracing.coordinates.factory.CoordinatesFactory;
 import com.lonebytesoft.hamster.raytracing.format.BmpFormatCommons;
 import com.lonebytesoft.hamster.raytracing.picture.Picture;
 import com.lonebytesoft.hamster.raytracing.shape.generic.orthotope.Orthotope;
+import com.lonebytesoft.hamster.raytracing.util.math.GeometryCalculator;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -15,7 +18,9 @@ public class BmpWriter implements PictureWriter<Coordinates2d> {
     // https://en.wikipedia.org/wiki/BMP_file_format
     @Override
     public void write(Picture<Coordinates2d> picture, OutputStream outputStream) throws IOException {
-        final Orthotope<Coordinates2d> bounds = PictureFormatUtils.calculateBounds(picture);
+        final CoordinatesFactory<Coordinates2d> coordinatesFactory = new Coordinates2dFactory();
+        final GeometryCalculator<Coordinates2d> geometryCalculator = new GeometryCalculator<>(coordinatesFactory);
+        final Orthotope<Coordinates2d> bounds = PictureFormatUtils.calculateBounds(picture, geometryCalculator);
         final int width = (int) Math.round(bounds.getVectors().get(0).getX() + 1);
         final int height = (int) Math.round(bounds.getVectors().get(1).getY() + 1);
 
@@ -45,7 +50,7 @@ public class BmpWriter implements PictureWriter<Coordinates2d> {
         for(int y = height - 1; y >= 0; y--) {
             for(int x = 0; x < width; x++) {
                 final Color color = picture.getPixelColor(
-                        new Coordinates2d(x + bounds.getBase().getX(), y + bounds.getBase().getY()));
+                        coordinatesFactory.build(x + bounds.getBase().getX(), y + bounds.getBase().getY()));
                 if(color == null) {
                     writeZeroes(BmpFormatCommons.BYTES_PER_PIXEL, outputStream);
                 } else {

@@ -4,7 +4,6 @@ import com.lonebytesoft.hamster.raytracing.color.Color;
 import com.lonebytesoft.hamster.raytracing.color.ColorCalculator;
 import com.lonebytesoft.hamster.raytracing.color.ColorWeighted;
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
-import com.lonebytesoft.hamster.raytracing.coordinates.CoordinatesCalculator;
 import com.lonebytesoft.hamster.raytracing.picture.Picture;
 import com.lonebytesoft.hamster.raytracing.ray.Ray;
 import com.lonebytesoft.hamster.raytracing.ray.RayTraceResult;
@@ -24,13 +23,15 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
-public class BeholderImpl<S extends Coordinates<S>, F extends Coordinates<F>> implements Beholder<F>, LightPropertiesProvider<S> {
+public class BeholderImpl<S extends Coordinates, F extends Coordinates>
+        implements Beholder<F>, LightPropertiesProvider<S> {
 
     private static final Logger logger = LoggerFactory.getLogger(BeholderImpl.class);
 
     private final S eye;
     private final Screen<S, F> screen;
     private final Color colorDefault;
+    private final GeometryCalculator<S> geometryCalculator;
 
     private final Collection<Shape<S>> shapes = new ArrayList<>();
     private final Collection<LightSource<S>> lightSources = new ArrayList<>();
@@ -39,16 +40,22 @@ public class BeholderImpl<S extends Coordinates<S>, F extends Coordinates<F>> im
     private double illuminanceAmountMax = 10.0;
     private double spaceParticlesDensity = 0.005;
 
-    public BeholderImpl(final S eye, final Screen<S, F> screen, final Color colorDefault) {
+    public BeholderImpl(
+            final S eye,
+            final Screen<S, F> screen,
+            final Color colorDefault,
+            final GeometryCalculator<S> geometryCalculator
+    ) {
         this.eye = eye;
         this.screen = screen;
         this.colorDefault = colorDefault;
+        this.geometryCalculator = geometryCalculator;
     }
 
     @Override
     public Picture<F> getPicture() {
         return screen.getPicture(coordinates -> {
-            final S direction = CoordinatesCalculator.subtract(coordinates, eye);
+            final S direction = geometryCalculator.subtract(coordinates, eye);
             final Ray<S> ray = new Ray<>(coordinates, direction);
             return traceRay(ray);
         });
@@ -103,8 +110,8 @@ public class BeholderImpl<S extends Coordinates<S>, F extends Coordinates<F>> im
         final double lightAmount = lightSources
                 .stream()
                 .map(lightSource -> lightSource.calculateLightAmount(
-                        GeometryCalculator.follow(ray.getStart(), ray.getDirection(),
-                                result.getDistance() / GeometryCalculator.length(ray.getDirection())),
+                        geometryCalculator.follow(ray.getStart(), ray.getDirection(),
+                                result.getDistance() / geometryCalculator.length(ray.getDirection())),
                         result.getNormal()))
                 .filter(Objects::nonNull)
                 .mapToDouble(Double::doubleValue)

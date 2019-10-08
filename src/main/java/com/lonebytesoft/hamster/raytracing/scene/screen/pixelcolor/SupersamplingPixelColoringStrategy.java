@@ -6,12 +6,14 @@ import com.lonebytesoft.hamster.raytracing.color.ColorWeighted;
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
 import com.lonebytesoft.hamster.raytracing.shape.feature.Surfaced;
 import com.lonebytesoft.hamster.raytracing.util.math.GeometryCalculator;
-import com.lonebytesoft.hamster.raytracing.util.variant.Options;
+import com.lonebytesoft.hamster.raytracing.util.variant.Option;
 import com.lonebytesoft.hamster.raytracing.util.variant.Variant;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public class SupersamplingPixelColoringStrategy<T extends Coordinates> implements PixelColoringStrategy<T> {
 
@@ -30,10 +32,10 @@ public class SupersamplingPixelColoringStrategy<T extends Coordinates> implement
         this.colorDefault = colorDefault;
 
         final int dimensions = geometryCalculator.buildVector(index -> 0.0).getDimensions();
-        final Variant samples = new Options(dimensions, multiplier);
-        this.samples = new ArrayList<>();
-        Variant.iterate(samples, (sampleIndex, sample) ->
-                this.samples.add(geometryCalculator.buildVector(index -> (2.0 * sample.get(index) + 1.0) / (2.0 * multiplier))));
+        final Variant samples = new Option(dimensions, multiplier);
+        this.samples = StreamSupport.stream(samples.spliterator(), false)
+                .map(sample -> geometryCalculator.buildVector(index -> (2.0 * sample.get(index) + 1.0) / (2.0 * multiplier)))
+                .collect(Collectors.toList());
     }
 
     @Override

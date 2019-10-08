@@ -14,8 +14,9 @@ import com.lonebytesoft.hamster.raytracing.util.math.equation.LinearSystemSolver
 import com.lonebytesoft.hamster.raytracing.util.math.equation.Solution;
 import com.lonebytesoft.hamster.raytracing.util.math.equation.SolutionType;
 import com.lonebytesoft.hamster.raytracing.util.variant.Combination;
-import com.lonebytesoft.hamster.raytracing.util.variant.Options;
+import com.lonebytesoft.hamster.raytracing.util.variant.Option;
 import com.lonebytesoft.hamster.raytracing.util.variant.Variant;
+import com.lonebytesoft.hamster.raytracing.util.variant.VariantWithIndex;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -181,7 +182,7 @@ public class GeneralOrthotope<T extends Coordinates>
         }
         final List<Integer> fixVectors = fixIndices.current();
 
-        final Variant fixValues = new Options(fixCount, 2);
+        final Variant fixValues = new Option(fixCount, 2);
         for(long variant = 0; variant < fixVectorsValueIndex; variant++) {
             fixValues.advance();
         }
@@ -319,22 +320,23 @@ public class GeneralOrthotope<T extends Coordinates>
         final int iterateFacetDimensions = isFullOrthotope ? orthotopeDimensions - 1 : facetDimensions;
         final int fixCount = orthotopeDimensions - iterateFacetDimensions;
         final Variant fixIndices = new Combination(fixCount, orthotopeDimensions);
-        final Variant fixValues = new Options(fixCount, 2);
+        final Variant fixValues = new Option(fixCount, 2);
 
         final OrthotopeIntersectionHolder intersectionHolder = new OrthotopeIntersectionHolder();
-        Variant.iterate(fixIndices, (fixVectorsIndex, fixVectors) -> {
+        for (final VariantWithIndex fixVectors : fixIndices.withIndex()) {
             final List<T> vectors = new ArrayList<>();
             for(int i = 0; i < orthotopeDimensions; i++) {
-                if(!fixVectors.contains(i)) {
+                if(!fixVectors.getValue().contains(i)) {
                     vectors.add(this.vectors.get(i));
                 }
             }
 
-            Variant.iterate(fixValues, (fixVectorsValueIndex, fixVectorsValue) -> {
+            for (final VariantWithIndex fixVectorsValue : fixValues.withIndex()) {
                 final T base = geometryCalculator.buildVector(
                         index -> this.base.getCoordinate(index) +
                                 IntStream.range(0, fixCount)
-                                        .mapToDouble(j -> fixVectorsValue.get(j) * this.vectors.get(fixVectors.get(j)).getCoordinate(index))
+                                        .mapToDouble(j -> fixVectorsValue.getValue().get(j)
+                                                * this.vectors.get(fixVectors.getValue().get(j)).getCoordinate(index))
                                         .sum()
                 );
 
@@ -343,20 +345,20 @@ public class GeneralOrthotope<T extends Coordinates>
                     final List<Double> solutionAdjusted;
                     if(isFullOrthotope) {
                         solutionAdjusted = new ArrayList<>(solution);
-                        solutionAdjusted.add(fixVectors.get(0) + 1, (double) fixVectorsValue.get(0));
+                        solutionAdjusted.add(fixVectors.getValue().get(0) + 1, (double) fixVectorsValue.getValue().get(0));
                     } else {
                         solutionAdjusted = solution;
                     }
 
-                    final OrthotopeIntersection candidate = new OrthotopeIntersection(solutionAdjusted, fixVectorsIndex, fixVectorsValueIndex);
+                    final OrthotopeIntersection candidate = new OrthotopeIntersection(solutionAdjusted, fixVectors.getIndex(), fixVectorsValue.getIndex());
                     if((candidate.getDistanceMultiplier() >= 0.0)
                             && (intersectionHolder.isEmpty() || (candidate.getDistanceMultiplier() < intersectionHolder.get().getDistanceMultiplier()))
                             && (isInfinite || isWithinBounds(candidate))) {
                         intersectionHolder.set(candidate);
                     }
                 }
-            });
-        });
+            }
+        }
 
         return intersectionHolder.get();
     }

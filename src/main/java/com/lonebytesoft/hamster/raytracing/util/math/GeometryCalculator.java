@@ -3,11 +3,20 @@ package com.lonebytesoft.hamster.raytracing.util.math;
 import com.lonebytesoft.hamster.raytracing.coordinates.Coordinates;
 import com.lonebytesoft.hamster.raytracing.coordinates.factory.CoordinatesFactory;
 import com.lonebytesoft.hamster.raytracing.ray.Ray;
+import com.lonebytesoft.hamster.raytracing.util.math.equation.LinearEquation;
+import com.lonebytesoft.hamster.raytracing.util.math.equation.LinearSystemSolver;
+import com.lonebytesoft.hamster.raytracing.util.math.equation.Solution;
+import com.lonebytesoft.hamster.raytracing.util.math.equation.SolutionType;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.IntToDoubleFunction;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.StreamSupport;
 
 public class GeometryCalculator<T extends Coordinates> {
 
@@ -136,10 +145,81 @@ public class GeometryCalculator<T extends Coordinates> {
         }
     }
 
-    public List<T> generateBasis() {
+    public Collection<T> generateBasis() {
         return IntStream.range(0, coordinatesFactory.getDimensions())
                 .mapToObj(index -> buildVector(i -> i == index ? 1.0 : 0.0))
                 .collect(Collectors.toList());
+    }
+
+    public Collection<T> calculateOrthogonalComplement(final Collection<T> vectors) {
+        final int subspaceDimensions = Optional.ofNullable(vectors).map(Collection::size).orElse(0);
+        final int spaceDimensions = coordinatesFactory.getDimensions();
+
+        if (subspaceDimensions == 0) {
+            return generateBasis();
+        } else if (subspaceDimensions == spaceDimensions) {
+            return Collections.emptyList();
+        } else if (subspaceDimensions > spaceDimensions) {
+            throw new IllegalArgumentException("Given more vectors than space dimensionality");
+        }
+
+        final List<T> vectorsList = new ArrayList<>(vectors);
+        IntStream.range(0, subspaceDimensions - 1).forEach(i ->
+                IntStream.range(i + 1, subspaceDimensions).forEach(j -> {
+                    if (!MathCalculator.isEqualApproximately(0d, product(vectorsList.get(i), vectorsList.get(j)))) {
+                        throw new IllegalArgumentException("Given vectors are not orthogonal to each other (e.g., #" + i + ", #" + j + ")");
+                    }
+                }));
+
+        final List<List<Double>> knownVectors = vectors
+                .stream()
+                .map(vector -> StreamSupport.stream(vector.spliterator(), false).collect(Collectors.toList()))
+                .collect(Collectors.toCollection(ArrayList::new));
+        final List<List<Double>> complement = new ArrayList<>();
+        for (int i = 0; i < spaceDimensions - subspaceDimensions; i++) {
+            final List<Double> vector = calculateOrthogonalVector(knownVectors);
+            knownVectors.add(vector);
+            complement.add(vector);
+        }
+
+        return complement
+                .stream()
+                .map(vector -> buildVector(vector::get))
+                .collect(Collectors.toList());
+    }
+
+    private List<Double> calculateOrthogonalVector(final List<List<Double>> vectors) {
+        final int variablesTotal = vectors.size();
+        final int dimensions = vectors.get(0).size();
+        final boolean[] isVariable = new boolean[dimensions];
+        int variables = 0;
+        for (int i = 0; i < dimensions; i++) {
+            final int index = i;
+            isVariable[index] = (variables < variablesTotal) && vectors.stream().anyMatch(vector -> !MathCalculator.isEqual(0.0, vector.get(index)));
+            if (isVariable[index]) {
+                variables++;
+            }
+        }
+
+        final Collection<LinearEquation> equations = vectors
+                .stream()
+                .map(vector -> new LinearEquation(
+                        IntStream.range(0, dimensions).filter(index -> isVariable[index]).mapToObj(vector::get).collect(Collectors.toList()),
+                        -IntStream.range(0, dimensions).filter(index -> !isVariable[index]).mapToObj(vector::get).reduce(Double::sum).orElse(0d)
+                ))
+                .collect(Collectors.toList());
+        final Solution solution = LinearSystemSolver.solve(equations);
+        if (solution.getType() != SolutionType.UNIQUE) {
+            throw new IllegalStateException("Unexpected solution: " + solution);
+        }
+
+        final List<Double> vector = new ArrayList<>(dimensions);
+        int variableIndex = 0;
+        for (int i = 0; i < dimensions; i++) {
+            final double value = isVariable[i] ? solution.getValues().get(variableIndex++) : 1d;
+            vector.add(value);
+        }
+        return vector;
     }
 
 }

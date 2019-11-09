@@ -201,6 +201,10 @@ public class Ball<T extends Coordinates>
         return geometryCalculator.length(geometryCalculator.subtract(point, center)) <= radius;
     }
 
+    public double getRadius() {
+        return radius;
+    }
+
     @Override
     public String toString() {
         return "Ball{" +

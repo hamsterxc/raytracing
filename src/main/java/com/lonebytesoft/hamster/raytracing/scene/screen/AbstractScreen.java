@@ -22,7 +22,7 @@ public abstract class AbstractScreen<S extends Coordinates, F extends Coordinate
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractScreen.class);
 
-    private static final long LOG_MESSAGE_COUNT = 10;
+    private static final long LOG_MESSAGE_COUNT = 100;
 
     private final F resolution;
     private final PixelColoringStrategy<F> coloringStrategy;
@@ -42,6 +42,7 @@ public abstract class AbstractScreen<S extends Coordinates, F extends Coordinate
     public Picture<F> getPicture(Function<S, Color> rayTracer) {
         final PictureMutable<F> picture = new PictureMutableImpl<>(geometryCalculator);
         final ExecutorService executorService = Executors.newWorkStealingPool();
+//        final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
         final long count = StreamSupport.stream(getPixels().spliterator(), false).count();
         final ProgressLogger progressLogger = new ProgressLogger(logger, count, LOG_MESSAGE_COUNT);
@@ -57,7 +58,7 @@ public abstract class AbstractScreen<S extends Coordinates, F extends Coordinate
                         return rayTracer.apply(coordinatesSolid);
                     }));
                 } catch (Exception e) {
-                    logger.warn("Failed to calculate pixel color {}: {}", pixelCoordinates, e.getMessage());
+                    logger.warn("Failed to calculate pixel color {}: {}", pixelCoordinates, e);
                 }
 
                 progressLogger.log(counter.incrementAndGet());

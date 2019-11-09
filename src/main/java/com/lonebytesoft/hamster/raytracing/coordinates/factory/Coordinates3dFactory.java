@@ -46,6 +46,15 @@ public class Coordinates3dFactory extends AbstractCoordinatesFactory<Coordinates
             return z;
         }
 
+        @Override
+        public String toString() {
+            return "Coordinates3D{" +
+                    "x=" + x +
+                    ", y=" + y +
+                    ", z=" + z +
+                    '}';
+        }
+
     }
 
 }
